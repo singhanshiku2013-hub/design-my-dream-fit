@@ -1,0 +1,211 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  defaultDesign,
+  designPrice,
+  designTitle,
+  type DesignState,
+  type Gender,
+  type Size,
+} from "./options";
+
+export type CartItem = {
+  id: string;
+  title: string;
+  size: Size;
+  qty: number;
+  price: number;
+  design: DesignState;
+};
+
+export type Customer = {
+  name: string;
+  address: string;
+  phone: string;
+  payment: "Cash on Delivery" | "Card" | "Online Payment";
+};
+
+export type Order = {
+  id: string;
+  placedAt: string;
+  customer: Customer;
+  items: CartItem[];
+  total: number;
+};
+
+type Store = {
+  hydrated: boolean;
+  designs: Record<Gender, DesignState>;
+  cart: CartItem[];
+  order: Order | null;
+  updateDesign: (gender: Gender, patch: DeepPartial<DesignState>) => void;
+  resetDesign: (gender: Gender) => void;
+  addToCart: (design: DesignState) => void;
+  removeFromCart: (id: string) => void;
+  setQty: (id: string, qty: number) => void;
+  clearCart: () => void;
+  placeOrder: (customer: Customer) => Order;
+  subtotal: number;
+};
+
+export type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends object ? Partial<T[K]> : T[K];
+};
+
+const KEY = "designmydress.state.v1";
+const StoreContext = createContext<Store | null>(null);
+
+function mergeDesign(base: DesignState, patch: DeepPartial<DesignState>): DesignState {
+  const next: DesignState = { ...base };
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined || value === null) continue;
+    const current = (base as Record<string, unknown>)[key];
+    if (typeof value === "object" && !Array.isArray(value) && typeof current === "object") {
+      (next as Record<string, unknown>)[key] = { ...(current as object), ...(value as object) };
+    } else {
+      (next as Record<string, unknown>)[key] = value;
+    }
+  }
+  return next;
+}
+
+export function StoreProvider({ children }: { children: ReactNode }) {
+  const [hydrated, setHydrated] = useState(false);
+  const [designs, setDesigns] = useState<Record<Gender, DesignState>>({
+    female: defaultDesign("female"),
+    male: defaultDesign("male"),
+  });
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [order, setOrder] = useState<Order | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<{
+          designs: Record<Gender, DesignState>;
+          cart: CartItem[];
+          order: Order | null;
+        }>;
+        if (parsed.designs) {
+          setDesigns({
+            female: mergeDesign(defaultDesign("female"), parsed.designs.female ?? {}),
+            male: mergeDesign(defaultDesign("male"), parsed.designs.male ?? {}),
+          });
+        }
+        if (parsed.cart) setCart(parsed.cart);
+        if (parsed.order) setOrder(parsed.order);
+      }
+    } catch {
+      /* ignore corrupt storage */
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify({ designs, cart, order }));
+    } catch {
+      /* storage full or unavailable */
+    }
+  }, [hydrated, designs, cart, order]);
+
+  const updateDesign = useCallback((gender: Gender, patch: DeepPartial<DesignState>) => {
+    setDesigns((prev) => ({ ...prev, [gender]: mergeDesign(prev[gender], patch) }));
+  }, []);
+
+  const resetDesign = useCallback((gender: Gender) => {
+    setDesigns((prev) => ({ ...prev, [gender]: defaultDesign(gender) }));
+  }, []);
+
+  const addToCart = useCallback((design: DesignState) => {
+    const item: CartItem = {
+      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+      title: designTitle(design),
+      size: design.size,
+      qty: 1,
+      price: designPrice(design),
+      design: JSON.parse(JSON.stringify(design)) as DesignState,
+    };
+    setCart((prev) => [...prev, item]);
+  }, []);
+
+  const removeFromCart = useCallback((id: string) => {
+    setCart((prev) => prev.filter((i) => i.id !== id));
+  }, []);
+
+  const setQty = useCallback((id: string, qty: number) => {
+    setCart((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, qty: Math.max(1, Math.min(20, qty)) } : i)),
+    );
+  }, []);
+
+  const clearCart = useCallback(() => setCart([]), []);
+
+  const subtotal = useMemo(
+    () => cart.reduce((sum, i) => sum + i.price * i.qty, 0),
+    [cart],
+  );
+
+  const placeOrder = useCallback(
+    (customer: Customer) => {
+      const next: Order = {
+        id: `DMD-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+        placedAt: new Date().toISOString(),
+        customer,
+        items: cart,
+        total: cart.reduce((sum, i) => sum + i.price * i.qty, 0),
+      };
+      setOrder(next);
+      return next;
+    },
+    [cart],
+  );
+
+  const value = useMemo<Store>(
+    () => ({
+      hydrated,
+      designs,
+      cart,
+      order,
+      updateDesign,
+      resetDesign,
+      addToCart,
+      removeFromCart,
+      setQty,
+      clearCart,
+      placeOrder,
+      subtotal,
+    }),
+    [
+      hydrated,
+      designs,
+      cart,
+      order,
+      updateDesign,
+      resetDesign,
+      addToCart,
+      removeFromCart,
+      setQty,
+      clearCart,
+      placeOrder,
+      subtotal,
+    ],
+  );
+
+  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
+}
+
+export function useStore(): Store {
+  const ctx = useContext(StoreContext);
+  if (!ctx) throw new Error("useStore must be used inside StoreProvider");
+  return ctx;
+}
