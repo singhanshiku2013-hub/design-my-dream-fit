@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GenderRouteImport } from './routes/gender'
+import { Route as CustomizeGenderRouteImport } from './routes/customize.$gender'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const GenderRoute = GenderRouteImport.update({
   path: '/gender',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomizeGenderRoute = CustomizeGenderRouteImport.update({
+  id: '/customize/$gender',
+  path: '/customize/$gender',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/gender': typeof GenderRoute
+  '/customize/$gender': typeof CustomizeGenderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/gender': typeof GenderRoute
+  '/customize/$gender': typeof CustomizeGenderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/gender': typeof GenderRoute
+  '/customize/$gender': typeof CustomizeGenderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/gender'
+  fullPaths: '/' | '/gender' | '/customize/$gender'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/gender'
-  id: '__root__' | '/' | '/gender'
+  to: '/' | '/gender' | '/customize/$gender'
+  id: '__root__' | '/' | '/gender' | '/customize/$gender'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   GenderRoute: typeof GenderRoute
+  CustomizeGenderRoute: typeof CustomizeGenderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GenderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/customize/$gender': {
+      id: '/customize/$gender'
+      path: '/customize/$gender'
+      fullPath: '/customize/$gender'
+      preLoaderRoute: typeof CustomizeGenderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   GenderRoute: GenderRoute,
+  CustomizeGenderRoute: CustomizeGenderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
