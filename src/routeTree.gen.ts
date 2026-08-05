@@ -10,7 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CartRouteImport } from './routes/cart'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as GenderRouteImport } from './routes/gender'
+import { Route as OrderConfirmationRouteImport } from './routes/order-confirmation'
+import { Route as ThankYouRouteImport } from './routes/thank-you'
 import { Route as CustomizeGenderRouteImport } from './routes/customize.$gender'
 
 const IndexRoute = IndexRouteImport.update({
@@ -18,9 +22,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CartRoute = CartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GenderRoute = GenderRouteImport.update({
   id: '/gender',
   path: '/gender',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderConfirmationRoute = OrderConfirmationRouteImport.update({
+  id: '/order-confirmation',
+  path: '/order-confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ThankYouRoute = ThankYouRouteImport.update({
+  id: '/thank-you',
+  path: '/thank-you',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustomizeGenderRoute = CustomizeGenderRouteImport.update({
@@ -31,31 +55,69 @@ const CustomizeGenderRoute = CustomizeGenderRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/gender': typeof GenderRoute
+  '/order-confirmation': typeof OrderConfirmationRoute
+  '/thank-you': typeof ThankYouRoute
   '/customize/$gender': typeof CustomizeGenderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/gender': typeof GenderRoute
+  '/order-confirmation': typeof OrderConfirmationRoute
+  '/thank-you': typeof ThankYouRoute
   '/customize/$gender': typeof CustomizeGenderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/gender': typeof GenderRoute
+  '/order-confirmation': typeof OrderConfirmationRoute
+  '/thank-you': typeof ThankYouRoute
   '/customize/$gender': typeof CustomizeGenderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/gender' | '/customize/$gender'
+  fullPaths:
+    | '/'
+    | '/cart'
+    | '/checkout'
+    | '/gender'
+    | '/order-confirmation'
+    | '/thank-you'
+    | '/customize/$gender'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/gender' | '/customize/$gender'
-  id: '__root__' | '/' | '/gender' | '/customize/$gender'
+  to:
+    | '/'
+    | '/cart'
+    | '/checkout'
+    | '/gender'
+    | '/order-confirmation'
+    | '/thank-you'
+    | '/customize/$gender'
+  id:
+    | '__root__'
+    | '/'
+    | '/cart'
+    | '/checkout'
+    | '/gender'
+    | '/order-confirmation'
+    | '/thank-you'
+    | '/customize/$gender'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CartRoute: typeof CartRoute
+  CheckoutRoute: typeof CheckoutRoute
   GenderRoute: typeof GenderRoute
+  OrderConfirmationRoute: typeof OrderConfirmationRoute
+  ThankYouRoute: typeof ThankYouRoute
   CustomizeGenderRoute: typeof CustomizeGenderRoute
 }
 
@@ -68,11 +130,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cart': {
+      id: '/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/gender': {
       id: '/gender'
       path: '/gender'
       fullPath: '/gender'
       preLoaderRoute: typeof GenderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order-confirmation': {
+      id: '/order-confirmation'
+      path: '/order-confirmation'
+      fullPath: '/order-confirmation'
+      preLoaderRoute: typeof OrderConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/thank-you': {
+      id: '/thank-you'
+      path: '/thank-you'
+      fullPath: '/thank-you'
+      preLoaderRoute: typeof ThankYouRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/customize/$gender': {
@@ -87,7 +177,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CartRoute: CartRoute,
+  CheckoutRoute: CheckoutRoute,
   GenderRoute: GenderRoute,
+  OrderConfirmationRoute: OrderConfirmationRoute,
+  ThankYouRoute: ThankYouRoute,
   CustomizeGenderRoute: CustomizeGenderRoute,
 }
 export const routeTree = rootRouteImport
