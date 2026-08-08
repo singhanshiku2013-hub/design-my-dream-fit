@@ -81,6 +81,18 @@ function CheckoutPage() {
     </label>
   );
 
+  if (!hydrated) {
+    return (
+      <PageShell className="space-y-8">
+        <div className="space-y-2">
+          <p className="eyebrow">Almost yours</p>
+          <h1 className="font-display text-4xl">Checkout</h1>
+        </div>
+        <div className="h-40 animate-pulse rounded-3xl border border-dashed border-border" />
+      </PageShell>
+    );
+  }
+
   return (
     <PageShell className="space-y-8">
       <div className="space-y-2">
