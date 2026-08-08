@@ -21,7 +21,7 @@ export const Route = createFileRoute("/customize/$gender")({
       ],
     };
   },
-  beforeLoad: ({ params }) => {
+  beforeLoad: ({ params }): never | void => {
     if (params.gender !== "female" && params.gender !== "male") throw notFound();
   },
   component: CustomizePage,

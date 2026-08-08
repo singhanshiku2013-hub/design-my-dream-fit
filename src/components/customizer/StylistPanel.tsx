@@ -120,7 +120,7 @@ export function StylistPanel({
                 </p>
                 {m.suggestion?.reasons?.length ? (
                   <ul className="space-y-1 text-xs text-muted-foreground">
-                    {m.suggestion.reasons.map((r, ri) => (
+                    {m.suggestion.reasons.map((r: string, ri: number) => (
                       <li key={ri} className="flex gap-2">
                         <span className="text-gold">◆</span>
                         <span>{r}</span>

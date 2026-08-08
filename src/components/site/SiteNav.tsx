@@ -28,8 +28,10 @@ export function SiteNav() {
           {LINKS.map((l) => (
             <Link
               key={l.label}
-              to={l.to}
-              params={"params" in l ? l.params : undefined}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              to={l.to as any}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              {...("params" in l ? ({ params: l.params } as any) : {})}
               className={cn(
                 "shrink-0 rounded-full px-3 py-1.5 text-[0.8rem] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
               )}
