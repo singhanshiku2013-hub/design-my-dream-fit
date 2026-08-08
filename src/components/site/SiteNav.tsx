@@ -21,15 +21,17 @@ export function SiteNav() {
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
         <Link to="/" className="font-display text-xl font-semibold tracking-tight">
-          Design<span className="text-luxe-gradient">MyDress</span>
+          Chic <span className="text-luxe-gradient">Canvas</span>
         </Link>
 
         <nav className="order-3 -mx-1 flex w-full items-center gap-1 overflow-x-auto pb-1 sm:order-2 sm:mx-0 sm:w-auto sm:overflow-visible sm:pb-0">
           {LINKS.map((l) => (
             <Link
               key={l.label}
-              to={l.to}
-              params={"params" in l ? l.params : undefined}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              to={l.to as any}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              {...("params" in l ? ({ params: l.params } as any) : {})}
               className={cn(
                 "shrink-0 rounded-full px-3 py-1.5 text-[0.8rem] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
               )}
@@ -66,7 +68,7 @@ export function PageShell({
       <SiteNav />
       <main className={cn("mx-auto max-w-7xl px-4 py-10 sm:px-6", className)}>{children}</main>
       <footer className="border-t border-border/70 py-8 text-center text-xs text-muted-foreground">
-        DesignMyDress — made-to-measure luxury. We make dresses suit people, not the other way around.
+        Chic Canvas — made-to-measure luxury. We make dresses suit people, not the other way around.
       </footer>
     </div>
   );

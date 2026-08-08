@@ -8,12 +8,12 @@ export const Route = createFileRoute("/customize/$gender")({
     const label = params.gender === "male" ? "Menswear" : "Womenswear";
     return {
       meta: [
-        { title: `${label} Customizer — DesignMyDress` },
+        { title: `${label} Customizer — Chic Canvas` },
         {
           name: "description",
           content: `Design ${label.toLowerCase()} live: necklines, sleeves, silhouettes, fabrics, patterns and colours with an AI stylist beside you.`,
         },
-        { property: "og:title", content: `${label} Customizer — DesignMyDress` },
+        { property: "og:title", content: `${label} Customizer — Chic Canvas` },
         {
           property: "og:description",
           content: "Layered live preview that updates instantly with every choice you make.",
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/customize/$gender")({
       ],
     };
   },
-  beforeLoad: ({ params }) => {
+  beforeLoad: ({ params }): never | void => {
     if (params.gender !== "female" && params.gender !== "male") throw notFound();
   },
   component: CustomizePage,

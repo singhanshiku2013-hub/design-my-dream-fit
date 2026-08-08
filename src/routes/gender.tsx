@@ -7,13 +7,13 @@ import { QUOTES, defaultDesign, type Gender } from "@/lib/design/options";
 export const Route = createFileRoute("/gender")({
   head: () => ({
     meta: [
-      { title: "Choose Your Fit — DesignMyDress" },
+      { title: "Choose Your Fit — Chic Canvas" },
       {
         name: "description",
         content:
-          "Select a female or male fit to open the DesignMyDress customizer and start building your made-to-measure garment.",
+          "Select a female or male fit to open the Chic Canvas customizer and start building your made-to-measure garment.",
       },
-      { property: "og:title", content: "Choose Your Fit — DesignMyDress" },
+      { property: "og:title", content: "Choose Your Fit — Chic Canvas" },
       {
         property: "og:description",
         content: "Two elegant starting points: female or male made-to-measure tailoring.",

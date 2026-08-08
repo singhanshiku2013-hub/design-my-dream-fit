@@ -10,13 +10,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
-      { title: "Checkout — DesignMyDress" },
+      { title: "Checkout — Chic Canvas" },
       {
         name: "description",
         content:
           "Enter delivery details, choose a payment method and confirm your made-to-measure order.",
       },
-      { property: "og:title", content: "Checkout — DesignMyDress" },
+      { property: "og:title", content: "Checkout — Chic Canvas" },
       { property: "og:description", content: "Delivery details for your custom garments." },
     ],
   }),
@@ -36,7 +36,7 @@ const schema = z.object({
 const PAYMENTS: Customer["payment"][] = ["Cash on Delivery", "Card", "Online Payment"];
 
 function CheckoutPage() {
-  const { cart, subtotal, placeOrder, setQty } = useStore();
+  const { cart, subtotal, placeOrder, updateCartItemSize, hydrated } = useStore();
   const navigate = useNavigate();
   const [form, setForm] = useState<Customer>({
     name: "",
@@ -80,6 +80,18 @@ function CheckoutPage() {
       {errors[key] ? <span className="text-xs text-destructive">{errors[key]}</span> : null}
     </label>
   );
+
+  if (!hydrated) {
+    return (
+      <PageShell className="space-y-8">
+        <div className="space-y-2">
+          <p className="eyebrow">Almost yours</p>
+          <h1 className="font-display text-4xl">Checkout</h1>
+        </div>
+        <div className="h-40 animate-pulse rounded-3xl border border-dashed border-border" />
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell className="space-y-8">
@@ -157,12 +169,7 @@ function CheckoutPage() {
                     Selected size
                     <select
                       value={item.size}
-                      onChange={(e) => {
-                        const size = e.target.value as Size;
-                        item.design.size = size;
-                        item.size = size;
-                        setQty(item.id, item.qty);
-                      }}
+                      onChange={(e) => updateCartItemSize(item.id, e.target.value as Size)}
                       className="rounded-md border border-border bg-background px-2 py-1 text-foreground"
                     >
                       {SIZES.map((s) => (

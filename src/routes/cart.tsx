@@ -8,12 +8,12 @@ import { QUOTES, designSummary } from "@/lib/design/options";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { title: "Your Cart — DesignMyDress" },
+      { title: "Your Cart — Chic Canvas" },
       {
         name: "description",
         content: "Review your custom garments, adjust quantities and continue to checkout.",
       },
-      { property: "og:title", content: "Your Cart — DesignMyDress" },
+      { property: "og:title", content: "Your Cart — Chic Canvas" },
       { property: "og:description", content: "Your made-to-measure pieces, ready for checkout." },
     ],
   }),
@@ -21,8 +21,20 @@ export const Route = createFileRoute("/cart")({
 });
 
 function CartPage() {
-  const { cart, removeFromCart, setQty, subtotal, clearCart } = useStore();
+  const { cart, removeFromCart, setQty, subtotal, clearCart, hydrated } = useStore();
   const navigate = useNavigate();
+
+  if (!hydrated) {
+    return (
+      <PageShell className="space-y-8">
+        <div className="space-y-2">
+          <p className="eyebrow">Your selection</p>
+          <h1 className="font-display text-4xl">Cart</h1>
+        </div>
+        <div className="h-40 animate-pulse rounded-3xl border border-dashed border-border" />
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell className="space-y-8">

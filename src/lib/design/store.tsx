@@ -44,12 +44,15 @@ type Store = {
   hydrated: boolean;
   designs: Record<Gender, DesignState>;
   cart: CartItem[];
+  orders: Order[];
+  /** Most recent order, or null when no order has been placed. */
   order: Order | null;
   updateDesign: (gender: Gender, patch: DeepPartial<DesignState>) => void;
   resetDesign: (gender: Gender) => void;
   addToCart: (design: DesignState) => void;
   removeFromCart: (id: string) => void;
   setQty: (id: string, qty: number) => void;
+  updateCartItemSize: (id: string, size: Size) => void;
   clearCart: () => void;
   placeOrder: (customer: Customer) => Order;
   subtotal: number;
@@ -59,7 +62,8 @@ export type DeepPartial<T> = {
   [K in keyof T]?: T[K] extends object ? Partial<T[K]> : T[K];
 };
 
-const KEY = "designmydress.state.v1";
+const KEY = "chiccanvas.state.v1";
+const LEGACY_KEY = "designmydress.state.v1";
 const StoreContext = createContext<Store | null>(null);
 
 function mergeDesign(base: DesignState, patch: DeepPartial<DesignState>): DesignState {
@@ -83,15 +87,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     male: defaultDesign("male"),
   });
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [order, setOrder] = useState<Order | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(KEY);
+      const raw =
+        window.localStorage.getItem(KEY) ?? window.localStorage.getItem(LEGACY_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<{
           designs: Record<Gender, DesignState>;
           cart: CartItem[];
+          orders: Order[];
           order: Order | null;
         }>;
         if (parsed.designs) {
@@ -101,7 +107,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           });
         }
         if (parsed.cart) setCart(parsed.cart);
-        if (parsed.order) setOrder(parsed.order);
+        if (parsed.orders?.length) setOrders(parsed.orders);
+        else if (parsed.order) setOrders([parsed.order]);
       }
     } catch {
       /* ignore corrupt storage */
@@ -112,11 +119,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(KEY, JSON.stringify({ designs, cart, order }));
+      window.localStorage.setItem(KEY, JSON.stringify({ designs, cart, orders }));
     } catch {
       /* storage full or unavailable */
     }
-  }, [hydrated, designs, cart, order]);
+  }, [hydrated, designs, cart, orders]);
 
   const updateDesign = useCallback((gender: Gender, patch: DeepPartial<DesignState>) => {
     setDesigns((prev) => ({ ...prev, [gender]: mergeDesign(prev[gender], patch) }));
@@ -148,6 +155,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const updateCartItemSize = useCallback((id: string, size: Size) => {
+    setCart((prev) =>
+      prev.map((i) =>
+        i.id === id ? { ...i, size, design: { ...i.design, size } } : i,
+      ),
+    );
+  }, []);
+
   const clearCart = useCallback(() => setCart([]), []);
 
   const subtotal = useMemo(
@@ -158,13 +173,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const placeOrder = useCallback(
     (customer: Customer) => {
       const next: Order = {
-        id: `DMD-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+        id: `CC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
         placedAt: new Date().toISOString(),
         customer,
         items: cart,
         total: cart.reduce((sum, i) => sum + i.price * i.qty, 0),
       };
-      setOrder(next);
+      setOrders((prev) => [next, ...prev]);
+      setCart([]);
       return next;
     },
     [cart],
@@ -175,12 +191,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       hydrated,
       designs,
       cart,
-      order,
+      orders,
+      order: orders[0] ?? null,
       updateDesign,
       resetDesign,
       addToCart,
       removeFromCart,
       setQty,
+      updateCartItemSize,
       clearCart,
       placeOrder,
       subtotal,
@@ -189,12 +207,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       hydrated,
       designs,
       cart,
-      order,
+      orders,
       updateDesign,
       resetDesign,
       addToCart,
       removeFromCart,
       setQty,
+      updateCartItemSize,
       clearCart,
       placeOrder,
       subtotal,

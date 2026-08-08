@@ -79,13 +79,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "DesignMyDress — Luxury Made-To-Measure Clothing" },
+      { title: "Chic Canvas — Luxury Made-To-Measure Clothing" },
       {
         name: "description",
         content:
           "We make dresses suit people—not force people to suit dresses. Design luxury clothing that fits your body and personality.",
       },
-      { name: "author", content: "DesignMyDress" },
+      { name: "author", content: "Chic Canvas" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },

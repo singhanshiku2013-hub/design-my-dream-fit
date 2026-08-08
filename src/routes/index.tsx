@@ -7,13 +7,13 @@ import { QUOTES, defaultDesign } from "@/lib/design/options";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "DesignMyDress — Luxury Made-To-Measure Clothing" },
+      { title: "Chic Canvas — Luxury Made-To-Measure Clothing" },
       {
         name: "description",
         content:
           "Design luxury clothing that fits your body, personality and mood. Custom necklines, silhouettes, fabrics and AI styling.",
       },
-      { property: "og:title", content: "DesignMyDress — Luxury Made-To-Measure Clothing" },
+      { property: "og:title", content: "Chic Canvas — Luxury Made-To-Measure Clothing" },
       {
         property: "og:description",
         content: "We make dresses suit people—not force people to suit dresses.",
@@ -59,7 +59,7 @@ function Home() {
             around.
           </h1>
           <p className="max-w-xl text-base text-muted-foreground">
-            DesignMyDress is an atelier in your browser. Choose the neckline, the fall of the skirt,
+            Chic Canvas is an atelier in your browser. Choose the neckline, the fall of the skirt,
             the sheen of the fabric and the exact shade — then watch it come alive on a model shaped
             like you.
           </p>
