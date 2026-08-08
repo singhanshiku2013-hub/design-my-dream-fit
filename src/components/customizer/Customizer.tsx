@@ -222,7 +222,7 @@ export function Customizer({ gender }: { gender: Gender }) {
                 <OptionRow label="Collar" options={SHIRT_COLLARS} value={design.shirt.collar} onChange={(v) => set({ shirt: { collar: v } })} />
                 <OptionRow label="Cuffs" options={CUFFS} value={design.shirt.cuff} onChange={(v) => set({ shirt: { cuff: v } })} />
                 <OptionRow label="Placket" options={PLACKETS} value={design.shirt.placket} onChange={(v) => set({ shirt: { placket: v } })} />
-                <OptionRow label="Yoke" options={YOKES} value={design.shirt.yoke} onChange={(v) => set({ shirt: { yoke: v } })} hint="Visible in back view" />
+                <OptionRow label="Yoke" options={YOKES} value={design.shirt.yoke} onChange={(v) => set({ shirt: { yoke: v }, view: "back" })} hint="Back-view detail — preview flips automatically" />
                 <ColorField label="Shirt color" value={design.shirt.color} onChange={(v) => set({ shirt: { color: v } })} />
               </div>
             </Section>
