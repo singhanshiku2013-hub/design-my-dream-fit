@@ -819,6 +819,7 @@ export function GarmentPreview({ design }: { design: DesignState }) {
         <g>
           <Piece d={pantLeg(-1)} color={design.pants.color} patternId={patternId} sheen={sheen} />
           <Piece d={pantLeg(1)} color={design.pants.color} patternId={patternId} sheen={sheen} />
+          {pantHemDetail()}
           {waistbandDetail()}
           <Piece
             d={shirtPath}
@@ -826,6 +827,8 @@ export function GarmentPreview({ design }: { design: DesignState }) {
             patternId={design.category === "suit" ? undefined : patternId}
             sheen={sheen}
           />
+          {/* fly / drawstring paint after the shirt so they are never buried */}
+          {flyDetail()}
           <Piece d={sleevePath(-1)} color={design.shirt.color} sheen={sheen} />
           <Piece d={sleevePath(1)} color={design.shirt.color} sheen={sheen} />
           {cuffs(-1)}
