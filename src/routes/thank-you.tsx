@@ -5,12 +5,12 @@ import { QUOTES } from "@/lib/design/options";
 export const Route = createFileRoute("/thank-you")({
   head: () => ({
     meta: [
-      { title: "Thank You — DesignMyDress" },
+      { title: "Thank You — Chic Canvas" },
       {
         name: "description",
         content: "Your custom garment is in production. Thank you for designing with us.",
       },
-      { property: "og:title", content: "Thank You — DesignMyDress" },
+      { property: "og:title", content: "Thank You — Chic Canvas" },
       { property: "og:description", content: "Confidence is the finest fabric we work with." },
     ],
   }),

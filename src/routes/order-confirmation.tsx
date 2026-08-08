@@ -8,13 +8,13 @@ import { QUOTES, designSummary } from "@/lib/design/options";
 export const Route = createFileRoute("/order-confirmation")({
   head: () => ({
     meta: [
-      { title: "Order Confirmation — DesignMyDress" },
+      { title: "Order Confirmation — Chic Canvas" },
       {
         name: "description",
         content:
           "Your complete customization summary, delivery details and estimated atelier production timeline.",
       },
-      { property: "og:title", content: "Order Confirmation — DesignMyDress" },
+      { property: "og:title", content: "Order Confirmation — Chic Canvas" },
       { property: "og:description", content: "Everything we will hand-make for you, confirmed." },
     ],
   }),

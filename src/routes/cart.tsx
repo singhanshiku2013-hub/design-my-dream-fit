@@ -8,12 +8,12 @@ import { QUOTES, designSummary } from "@/lib/design/options";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { title: "Your Cart — DesignMyDress" },
+      { title: "Your Cart — Chic Canvas" },
       {
         name: "description",
         content: "Review your custom garments, adjust quantities and continue to checkout.",
       },
-      { property: "og:title", content: "Your Cart — DesignMyDress" },
+      { property: "og:title", content: "Your Cart — Chic Canvas" },
       { property: "og:description", content: "Your made-to-measure pieces, ready for checkout." },
     ],
   }),

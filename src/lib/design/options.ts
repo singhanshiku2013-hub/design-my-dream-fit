@@ -1,4 +1,4 @@
-// Central catalogue of every customization option in DesignMyDress.
+// Central catalogue of every customization option in Chic Canvas.
 // Pure data + types: safe to import anywhere (client or server).
 
 export type Gender = "female" | "male";
