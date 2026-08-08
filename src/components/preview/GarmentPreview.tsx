@@ -292,7 +292,7 @@ export function GarmentPreview({ design }: { design: DesignState }) {
 
   // ---- separates / suit geometry ---------------------------------------
   const shirtBottom = HIP_Y + 26;
-  const shirtPath = bodice(shirtBottom, HH * 0.96);
+  const shirtPath = bodice(shirtBottom, HH * 0.96, waistY, WH * 1.06);
   const pantsTopY = design.pants.waistband === "High-rise" ? waistY - 10 : HIP_Y - 40;
   const pantHemY =
     design.pants.hem === "Elastic-jogger"
