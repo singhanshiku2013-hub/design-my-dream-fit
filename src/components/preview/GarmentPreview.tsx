@@ -412,6 +412,10 @@ export function GarmentPreview({ design }: { design: DesignState }) {
     if (design.jacket.lapel === "Peak") {
       return `M ${CX + dir * 6} ${y} L ${CX + dir * 62} ${y + 30} L ${CX + dir * 34} ${y + 44} L ${CX + dir * 8} ${y + depth} Z`;
     }
+    if (design.jacket.lapel === "Cran") {
+      // Cran necker: a fish-mouth notch cut high with a small stepped gorge
+      return `M ${CX + dir * 6} ${y} L ${CX + dir * 46} ${y + 14} L ${CX + dir * 30} ${y + 30} L ${CX + dir * 50} ${y + 44} L ${CX + dir * 8} ${y + depth} Z`;
+    }
     if (["Nehru", "Mao", "Standing", "Tieless"].includes(design.jacket.lapel)) {
       return `M ${CX + dir * 6} ${y} L ${CX + dir * 30} ${y + 6} L ${CX + dir * 10} ${y + 60} Z`;
     }
@@ -430,6 +434,24 @@ export function GarmentPreview({ design }: { design: DesignState }) {
         return <path d={`M ${CX} ${top} L ${CX} ${bottom}`} stroke="#9AA0A6" strokeWidth="4" strokeDasharray="4 3" />;
       case "Asymmetrical":
         return <path d={`M ${CX + 16} ${top} L ${CX + 6} ${bottom}`} stroke="rgba(0,0,0,.2)" strokeWidth="2" />;
+      case "French":
+        // clean edge-stitched fold, no visible placket band or buttons
+        return (
+          <g fill="none">
+            <path d={`M ${CX - 6} ${top} L ${CX - 6} ${bottom}`} stroke="rgba(0,0,0,.16)" strokeWidth="1.2" />
+            <path d={`M ${CX} ${top} L ${CX} ${bottom}`} stroke="rgba(0,0,0,.1)" strokeWidth="1" />
+          </g>
+        );
+      case "Military":
+        // wide double-stitched band with square buttons
+        return (
+          <g>
+            <rect x={CX - 11} y={top} width={22} height={bottom - top} fill="rgba(0,0,0,.06)" stroke="rgba(0,0,0,.22)" strokeWidth="1" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <rect key={i} x={CX - 3.5} y={top + 24 + i * 40} width={7} height={7} fill="rgba(0,0,0,.45)" />
+            ))}
+          </g>
+        );
       case "Tuxedo":
         return (
           <g>
@@ -485,21 +507,57 @@ export function GarmentPreview({ design }: { design: DesignState }) {
     );
   };
 
+  const CUFF_SPEC: Record<string, { w: number; h: number; rx: number; marks: number; slant?: boolean }> = {
+    Barrel: { w: 16, h: 16, rx: 2, marks: 1 },
+    French: { w: 22, h: 24, rx: 2, marks: 0 },
+    Convertible: { w: 18, h: 20, rx: 3, marks: 2 },
+    Cocktail: { w: 22, h: 26, rx: 6, marks: 1 },
+    Mitred: { w: 17, h: 18, rx: 0, marks: 1, slant: true },
+    Rounded: { w: 16, h: 16, rx: 8, marks: 1 },
+    Square: { w: 18, h: 18, rx: 0, marks: 1 },
+    "Two-button": { w: 20, h: 22, rx: 2, marks: 2 },
+    Neapolitan: { w: 15, h: 14, rx: 4, marks: 1 },
+    Gauntlet: { w: 22, h: 30, rx: 2, marks: 3 },
+  };
+
   const cuffs = (dir: number) => {
     if (design.category === "dress") return null;
     const y = HIP_Y + 56;
     const x = CX + dir * (SH + 6);
-    const wide = ["French", "Gauntlet", "Cocktail"].includes(design.shirt.cuff);
+    const spec = CUFF_SPEC[design.shirt.cuff] ?? CUFF_SPEC["Barrel"]!;
+    const left = x - dir * 16 - (dir > 0 ? 0 : spec.w);
     return (
-      <rect
-        x={x - dir * 16 - (dir > 0 ? 0 : 16)}
-        y={y}
-        width={wide ? 22 : 16}
-        height={wide ? 24 : 16}
-        rx={design.shirt.cuff === "Rounded" ? 8 : 2}
-        fill={design.shirt.color}
-        stroke="rgba(0,0,0,.2)"
-      />
+      <g>
+        {spec.slant ? (
+          <path
+            d={`M ${left} ${y} L ${left + spec.w} ${y} L ${left + spec.w} ${y + spec.h} L ${left} ${y + spec.h - 7} Z`}
+            fill={design.shirt.color}
+            stroke="rgba(0,0,0,.2)"
+          />
+        ) : (
+          <rect
+            x={left}
+            y={y}
+            width={spec.w}
+            height={spec.h}
+            rx={spec.rx}
+            fill={design.shirt.color}
+            stroke="rgba(0,0,0,.2)"
+          />
+        )}
+        {design.shirt.cuff === "French" ? (
+          <circle cx={left + spec.w / 2} cy={y + spec.h / 2} r={3} fill="#9AA0A6" stroke="rgba(0,0,0,.3)" />
+        ) : null}
+        {Array.from({ length: spec.marks }).map((_, i) => (
+          <circle
+            key={i}
+            cx={left + spec.w / 2}
+            cy={y + 6 + i * 8}
+            r={1.8}
+            fill="rgba(0,0,0,.4)"
+          />
+        ))}
+      </g>
     );
   };
 
@@ -507,13 +565,55 @@ export function GarmentPreview({ design }: { design: DesignState }) {
     if (back || design.category !== "suit") return null;
     const x = CX - 62;
     const y = SHOULDER_Y + 70;
-    if (design.jacket.pocket === "Patch" || design.jacket.pocket === "Pleated") {
-      return <rect x={x} y={y} width={34} height={30} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="1.6" />;
+    switch (design.jacket.pocket) {
+      case "Patch":
+        return <rect x={x} y={y} width={34} height={30} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="1.6" />;
+      case "Pleated":
+        return (
+          <g fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="1.6">
+            <rect x={x} y={y} width={34} height={30} />
+            <path d={`M ${x + 17} ${y} L ${x + 17} ${y + 30}`} />
+          </g>
+        );
+      case "Slanted":
+        return <path d={`M ${x} ${y + 10} L ${x + 34} ${y}`} stroke="rgba(0,0,0,.4)" strokeWidth="3" />;
+      case "Ticket":
+        return (
+          <g stroke="rgba(0,0,0,.4)" strokeWidth="3">
+            <path d={`M ${x} ${y + 10} L ${x + 34} ${y}`} />
+            <path d={`M ${x + 6} ${y + 22} L ${x + 26} ${y + 15}`} strokeWidth="2" />
+          </g>
+        );
+      case "Jetted":
+        return (
+          <g>
+            <rect x={x} y={y} width={34} height={7} fill="rgba(0,0,0,.25)" stroke="rgba(0,0,0,.4)" strokeWidth="1" />
+          </g>
+        );
+      case "Flap":
+        return (
+          <g stroke="rgba(0,0,0,.4)" strokeWidth="1.4">
+            <path d={`M ${x} ${y} L ${x + 34} ${y} L ${x + 34} ${y + 12} L ${x} ${y + 12} Z`} fill={design.jacket.color} />
+            <path d={`M ${x} ${y + 12} L ${x + 34} ${y + 12}`} />
+          </g>
+        );
+      case "Hidden-zipper":
+        return (
+          <path
+            d={`M ${x} ${y + 4} L ${x + 34} ${y + 4}`}
+            stroke="#9AA0A6"
+            strokeWidth="3"
+            strokeDasharray="3 3"
+          />
+        );
+      default: // Welt
+        return (
+          <g>
+            <path d={`M ${x} ${y} L ${x + 34} ${y}`} stroke="rgba(0,0,0,.4)" strokeWidth="3" />
+            <path d={`M ${x} ${y} L ${x} ${y + 6} M ${x + 34} ${y} L ${x + 34} ${y + 6}`} stroke="rgba(0,0,0,.3)" strokeWidth="1.4" />
+          </g>
+        );
     }
-    if (design.jacket.pocket === "Slanted" || design.jacket.pocket === "Ticket") {
-      return <path d={`M ${x} ${y + 10} L ${x + 34} ${y}`} stroke="rgba(0,0,0,.4)" strokeWidth="3" />;
-    }
-    return <path d={`M ${x} ${y} L ${x + 34} ${y}`} stroke="rgba(0,0,0,.4)" strokeWidth="3" />;
   };
 
   const skirtDetails = () => {
@@ -590,14 +690,17 @@ export function GarmentPreview({ design }: { design: DesignState }) {
     );
   };
 
+  const waistbandHeight = () =>
+    design.pants.waistband === "Hollywood" || design.pants.waistband === "High-rise"
+      ? 20
+      : design.pants.waistband === "Extended" || design.pants.waistband === "Gurkha"
+        ? 16
+        : 12;
+
+  /** The band itself — sits under the shirt. */
   const waistbandDetail = () => {
     if (design.category === "dress") return null;
-    const h =
-      design.pants.waistband === "Hollywood" || design.pants.waistband === "High-rise"
-        ? 20
-        : design.pants.waistband === "Extended" || design.pants.waistband === "Gurkha"
-          ? 16
-          : 12;
+    const h = waistbandHeight();
     return (
       <g>
         <rect
@@ -615,26 +718,27 @@ export function GarmentPreview({ design }: { design: DesignState }) {
             strokeDasharray="4 4"
           />
         ) : null}
-        {design.pants.waistband === "Drawstring" && !back ? (
+      </g>
+    );
+  };
+
+  /** Fly / zipper / drawstring marks — painted after the shirt so they stay visible. */
+  const flyDetail = () => {
+    if (design.category === "dress" || back) return null;
+    return (
+      <g>
+        {design.pants.waistband === "Drawstring" ? (
           <path d={`M ${CX - 18} ${pantsTopY} q 18 22 36 0`} stroke="rgba(0,0,0,.4)" strokeWidth="2" fill="none" />
         ) : null}
-        {!back ? (
-          design.pants.fly === "Zipper" ? (
-            <path d={`M ${CX} ${pantsTopY} L ${CX} ${pantsTopY + 40}`} stroke="#9AA0A6" strokeWidth="3" strokeDasharray="3 3" />
-          ) : (
-            <g>
-              {[0, 1].map((i) => (
-                <circle key={i} cx={CX + 3} cy={pantsTopY + 12 + i * 18} r={3} fill="rgba(0,0,0,.4)" />
-              ))}
-            </g>
-          )
-        ) : null}
-        {design.pants.hem === "Turned-up" ? (
-          <g stroke="rgba(0,0,0,.25)" strokeWidth="2" fill="none">
-            <path d={`M ${CX - HH * 0.6} ${pantHemY - 16} L ${CX - 12} ${pantHemY - 16}`} />
-            <path d={`M ${CX + 12} ${pantHemY - 16} L ${CX + HH * 0.6} ${pantHemY - 16}`} />
+        {design.pants.fly === "Zipper" ? (
+          <path d={`M ${CX} ${pantsTopY} L ${CX} ${pantsTopY + 40}`} stroke="#9AA0A6" strokeWidth="3" strokeDasharray="3 3" />
+        ) : (
+          <g>
+            {[0, 1].map((i) => (
+              <circle key={i} cx={CX + 3} cy={pantsTopY + 12 + i * 18} r={3} fill="rgba(0,0,0,.4)" />
+            ))}
           </g>
-        ) : null}
+        )}
       </g>
     );
   };
