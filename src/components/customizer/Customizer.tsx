@@ -240,8 +240,8 @@ export function Customizer({ gender }: { gender: Gender }) {
               <Section title="Jacket / suit">
                 <div className="space-y-4">
                   <OptionRow label="Lapels" options={LAPELS} value={design.jacket.lapel} onChange={(v) => set({ jacket: { lapel: v, enabled: true } })} />
-                  <OptionRow label="Vents" options={VENTS} value={design.jacket.vent} onChange={(v) => set({ jacket: { vent: v } })} />
-                  <OptionRow label="Breast pocket" options={BREAST_POCKETS} value={design.jacket.pocket} onChange={(v) => set({ jacket: { pocket: v } })} />
+                  <OptionRow label="Vents" options={VENTS} value={design.jacket.vent} onChange={(v) => set({ jacket: { vent: v }, view: "back" })} hint="Back-view detail — preview flips automatically" />
+                  <OptionRow label="Breast pocket" options={BREAST_POCKETS} value={design.jacket.pocket} onChange={(v) => set({ jacket: { pocket: v }, view: "front" })} hint="Front-view detail — preview flips automatically" />
                   <ColorField label="Jacket color" value={design.jacket.color} onChange={(v) => set({ jacket: { color: v } })} />
                 </div>
               </Section>
