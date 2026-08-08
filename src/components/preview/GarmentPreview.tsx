@@ -157,12 +157,31 @@ export function GarmentPreview({ design }: { design: DesignState }) {
     Z`;
 
   // ---- garment geometry ------------------------------------------------
-  const bodice = (bottomY: number, bottomHW: number) => `
+  // Two-segment bodice: shoulder → waist → bottom, mirroring the torso path so
+  // garments follow the body's waist indentation instead of a single sweep.
+  const bodice = (
+    bottomY: number,
+    bottomHW: number,
+    midY?: number,
+    midHW?: number,
+  ) => {
+    if (midY === undefined || midHW === undefined) {
+      return `
     M ${CX - SH - 3} ${SHOULDER_Y - 4}
     C ${CX - SH - 9} ${BUST_Y} ${CX - bottomHW - 8} ${bottomY - 60} ${CX - bottomHW} ${bottomY}
     L ${CX + bottomHW} ${bottomY}
     C ${CX + bottomHW + 8} ${bottomY - 60} ${CX + SH + 9} ${BUST_Y} ${CX + SH + 3} ${SHOULDER_Y - 4}
     Z`;
+    }
+    return `
+    M ${CX - SH - 3} ${SHOULDER_Y - 4}
+    C ${CX - SH - 9} ${BUST_Y} ${CX - midHW - 9} ${midY - 44} ${CX - midHW} ${midY}
+    C ${CX - bottomHW - 4} ${midY + (bottomY - midY) * 0.45} ${CX - bottomHW} ${bottomY - (bottomY - midY) * 0.3} ${CX - bottomHW} ${bottomY}
+    L ${CX + bottomHW} ${bottomY}
+    C ${CX + bottomHW} ${bottomY - (bottomY - midY) * 0.3} ${CX + bottomHW + 4} ${midY + (bottomY - midY) * 0.45} ${CX + midHW} ${midY}
+    C ${CX + midHW + 9} ${midY - 44} ${CX + SH + 9} ${BUST_Y} ${CX + SH + 3} ${SHOULDER_Y - 4}
+    Z`;
+  };
 
   const skirtHemY = waistY + (FLOOR_Y - waistY) * (HEM_FACTOR[design.dress.hemline] ?? 0.6);
   const skirtHW = WH * (SKIRT_WIDTH[design.dress.skirt] ?? 1.6) + 6;
