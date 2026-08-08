@@ -299,17 +299,98 @@ export function GarmentPreview({ design }: { design: DesignState }) {
       ? FLOOR_Y - 34
       : design.pants.hem === "Stirrup"
         ? FLOOR_Y - 6
-        : FLOOR_Y - 12;
+        : design.pants.hem === "Raw-edge"
+          ? FLOOR_Y - 20
+          : FLOOR_Y - 12;
+  const PANT_HEM_WIDTH: Record<string, number> = {
+    Straight: 34,
+    "Turned-up": 34,
+    "Step-hem": 34,
+    "Elastic-jogger": 24,
+    "Raw-edge": 38,
+    "Split-hem": 30,
+    Stirrup: 26,
+  };
   const pantLeg = (dir: number) => {
     const outer = HH * 0.98;
     const innerTop = 6;
-    const hemHW = design.pants.hem === "Elastic-jogger" ? 24 * s : 34 * s;
+    const hemHW = (PANT_HEM_WIDTH[design.pants.hem] ?? 34) * s;
+    // step-hem drops the back/outer edge lower than the inner edge
+    const outerHemY = design.pants.hem === "Step-hem" ? pantHemY + 16 : pantHemY;
     return `
       M ${CX + dir * outer} ${pantsTopY}
-      C ${CX + dir * (outer + 2)} ${HIP_Y + 140} ${CX + dir * (hemHW + 26)} ${pantHemY - 150} ${CX + dir * (hemHW + 14)} ${pantHemY}
+      C ${CX + dir * (outer + 2)} ${HIP_Y + 140} ${CX + dir * (hemHW + 26)} ${pantHemY - 150} ${CX + dir * (hemHW + 14)} ${outerHemY}
       L ${CX + dir * innerTop} ${pantHemY}
       C ${CX + dir * innerTop} ${pantHemY - 180} ${CX + dir * (innerTop + 6)} ${HIP_Y + 80} ${CX + dir * innerTop} ${pantsTopY}
       Z`;
+  };
+
+  const pantHemDetail = () => {
+    if (design.category === "dress") return null;
+    const hemHW = (PANT_HEM_WIDTH[design.pants.hem] ?? 34) * s;
+    switch (design.pants.hem) {
+      case "Turned-up":
+        return (
+          <g stroke="rgba(0,0,0,.25)" strokeWidth="2" fill="none">
+            <path d={`M ${CX - hemHW - 14} ${pantHemY - 16} L ${CX - 8} ${pantHemY - 16}`} />
+            <path d={`M ${CX + 8} ${pantHemY - 16} L ${CX + hemHW + 14} ${pantHemY - 16}`} />
+          </g>
+        );
+      case "Split-hem":
+        return (
+          <g stroke="rgba(0,0,0,.32)" strokeWidth="2" fill="none">
+            <path d={`M ${CX - hemHW * 0.6} ${pantHemY} L ${CX - hemHW * 0.6} ${pantHemY - 46}`} />
+            <path d={`M ${CX + hemHW * 0.6} ${pantHemY} L ${CX + hemHW * 0.6} ${pantHemY - 46}`} />
+          </g>
+        );
+      case "Raw-edge": {
+        const zig = (dir: number) => {
+          const start = CX + dir * 8;
+          const end = CX + dir * (hemHW + 14);
+          const steps = 7;
+          let d = `M ${start} ${pantHemY}`;
+          for (let i = 1; i <= steps; i++) {
+            const x = start + ((end - start) * i) / steps;
+            d += ` L ${x} ${pantHemY + (i % 2 ? 9 : 0)}`;
+          }
+          return d;
+        };
+        return (
+          <g stroke="rgba(0,0,0,.35)" strokeWidth="1.6" fill="none">
+            <path d={zig(-1)} />
+            <path d={zig(1)} />
+          </g>
+        );
+      }
+      case "Step-hem":
+        return (
+          <g stroke="rgba(0,0,0,.28)" strokeWidth="2" fill="none">
+            <path d={`M ${CX - hemHW - 14} ${pantHemY + 16} L ${CX - 8} ${pantHemY}`} />
+            <path d={`M ${CX + 8} ${pantHemY} L ${CX + hemHW + 14} ${pantHemY + 16}`} />
+          </g>
+        );
+      case "Elastic-jogger":
+        return (
+          <g stroke="rgba(0,0,0,.3)" strokeWidth="2" fill="none" strokeDasharray="3 3">
+            <path d={`M ${CX - hemHW - 14} ${pantHemY - 8} L ${CX - 8} ${pantHemY - 8}`} />
+            <path d={`M ${CX + 8} ${pantHemY - 8} L ${CX + hemHW + 14} ${pantHemY - 8}`} />
+          </g>
+        );
+      case "Stirrup":
+        return (
+          <g stroke="rgba(0,0,0,.3)" strokeWidth="2.5" fill="none">
+            <path d={`M ${CX - hemHW - 12} ${pantHemY} q ${-8} 16 ${16} 18`} />
+            <path d={`M ${CX + hemHW + 12} ${pantHemY} q 8 16 -16 18`} />
+          </g>
+        );
+      default:
+        return (
+          <g stroke="rgba(0,0,0,.18)" strokeWidth="1.4" fill="none">
+            <path d={`M ${CX - hemHW - 14} ${pantHemY - 4} L ${CX - 8} ${pantHemY - 4}`} />
+            <path d={`M ${CX + 8} ${pantHemY - 4} L ${CX + hemHW + 14} ${pantHemY - 4}`} />
+          </g>
+        );
+    }
   };
 
   const jacketPanel = (dir: number) => {
