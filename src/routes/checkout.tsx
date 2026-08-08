@@ -36,7 +36,7 @@ const schema = z.object({
 const PAYMENTS: Customer["payment"][] = ["Cash on Delivery", "Card", "Online Payment"];
 
 function CheckoutPage() {
-  const { cart, subtotal, placeOrder, setQty } = useStore();
+  const { cart, subtotal, placeOrder, updateCartItemSize, hydrated } = useStore();
   const navigate = useNavigate();
   const [form, setForm] = useState<Customer>({
     name: "",
@@ -157,12 +157,7 @@ function CheckoutPage() {
                     Selected size
                     <select
                       value={item.size}
-                      onChange={(e) => {
-                        const size = e.target.value as Size;
-                        item.design.size = size;
-                        item.size = size;
-                        setQty(item.id, item.qty);
-                      }}
+                      onChange={(e) => updateCartItemSize(item.id, e.target.value as Size)}
                       className="rounded-md border border-border bg-background px-2 py-1 text-foreground"
                     >
                       {SIZES.map((s) => (
