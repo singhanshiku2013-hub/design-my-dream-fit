@@ -68,7 +68,7 @@ export function PageShell({
       <SiteNav />
       <main className={cn("mx-auto max-w-7xl px-4 py-10 sm:px-6", className)}>{children}</main>
       <footer className="border-t border-border/70 py-8 text-center text-xs text-muted-foreground">
-        Chic Canvas — made-to-measure luxury. We make dresses suit people, not the other way around.
+        Chic Canvas: made-to-measure luxury. We make dresses suit people, not the other way around.
       </footer>
     </div>
   );
