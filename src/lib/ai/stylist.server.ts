@@ -1,6 +1,7 @@
 import {
   ALL_PATTERNS,
   CUFFS,
+  DISABILITIES,
   DRESS_COLLARS,
   FABRICS,
   HEMLINES,
@@ -9,6 +10,7 @@ import {
   PANT_HEMS,
   PLACKETS,
   SHIRT_COLLARS,
+  SHIRT_SLEEVES,
   SIZES,
   SKIRTS,
   SLEEVES,
@@ -28,6 +30,8 @@ function catalogue(design: DesignState) {
     size: [...SIZES],
     fabric: FABRICS.map((f) => f.id),
     pattern: ALL_PATTERNS,
+    pantsPattern: ALL_PATTERNS,
+    disability: DISABILITIES.map((d) => d.id),
     dress: {
       neckline: NECKLINES,
       sleeve: SLEEVES,
@@ -36,7 +40,7 @@ function catalogue(design: DesignState) {
       skirt: SKIRTS,
       hemline: HEMLINES,
     },
-    shirt: { collar: SHIRT_COLLARS, cuff: CUFFS, placket: PLACKETS, yoke: YOKES },
+    shirt: { collar: SHIRT_COLLARS, sleeve: SHIRT_SLEEVES, cuff: CUFFS, placket: PLACKETS, yoke: YOKES },
     pants: { waistband: WAISTBANDS, fly: ["Zipper", "Button"], hem: PANT_HEMS },
     jacket: { lapel: LAPELS, vent: VENTS, pocket: BREAST_POCKETS },
   };

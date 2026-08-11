@@ -278,7 +278,104 @@ export const PANT_HEMS = list(
   "Stirrup",
 );
 
+export const SHIRT_SLEEVES = list(
+  "Sleeveless",
+  "Cap",
+  "Short",
+  "Three-quarter",
+  "Long",
+);
+
+export type DisabilityOption = {
+  id: string;
+  label: string;
+  description: string;
+  limb: "none" | "leg" | "arm";
+  /** how much of the limb is missing */
+  level: "none" | "above-knee" | "below-knee" | "full-arm" | "below-elbow";
+  sides: 0 | 1 | 2;
+};
+
+export const DISABILITIES: DisabilityOption[] = [
+  {
+    id: "none",
+    label: "None",
+    description: "No adaptive tailoring required.",
+    limb: "none",
+    level: "none",
+    sides: 0,
+  },
+  {
+    id: "unilateral-above-knee",
+    label: "Unilateral amputation — above knee",
+    description: "Loss of one leg above the knee joint.",
+    limb: "leg",
+    level: "above-knee",
+    sides: 1,
+  },
+  {
+    id: "unilateral-below-knee",
+    label: "Unilateral amputation — below knee",
+    description: "One foot and lower leg removed, knee preserved.",
+    limb: "leg",
+    level: "below-knee",
+    sides: 1,
+  },
+  {
+    id: "bilateral-above-knee",
+    label: "Bilateral amputation — above knee",
+    description: "Loss of both legs above the knee; affects balance and trunk stability.",
+    limb: "leg",
+    level: "above-knee",
+    sides: 2,
+  },
+  {
+    id: "bilateral-below-knee",
+    label: "Bilateral amputation — below knee",
+    description: "Both feet and lower legs removed, both knees preserved.",
+    limb: "leg",
+    level: "below-knee",
+    sides: 2,
+  },
+  {
+    id: "unilateral-arm",
+    label: "Unilateral arm loss",
+    description: "Loss of one arm; restricts two-handed coordination.",
+    limb: "arm",
+    level: "full-arm",
+    sides: 1,
+  },
+  {
+    id: "bilateral-arm",
+    label: "Bilateral arm loss",
+    description: "Loss of both arms; needs alternative fastenings.",
+    limb: "arm",
+    level: "full-arm",
+    sides: 2,
+  },
+  {
+    id: "unilateral-below-elbow",
+    label: "Below-elbow amputation — one side",
+    description: "One hand and forearm removed below the elbow.",
+    limb: "arm",
+    level: "below-elbow",
+    sides: 1,
+  },
+  {
+    id: "bilateral-below-elbow",
+    label: "Below-elbow amputation — both sides",
+    description: "Both hands and forearms removed below the elbow.",
+    limb: "arm",
+    level: "below-elbow",
+    sides: 2,
+  },
+];
+
+export const disabilityFor = (id: string): DisabilityOption =>
+  DISABILITIES.find((d) => d.id === id) ?? DISABILITIES[0]!;
+
 export const LAPELS = list(
+
   "Notch",
   "Peak",
   "Shawl",
@@ -376,6 +473,8 @@ export type DesignState = {
   size: Size;
   category: Category;
   fabric: Fabric;
+  /** Adaptive tailoring / limb difference selection. */
+  disability: string;
   dress: {
     neckline: string;
     sleeve: string;
@@ -387,6 +486,7 @@ export type DesignState = {
   };
   shirt: {
     collar: string;
+    sleeve: string;
     cuff: string;
     placket: string;
     yoke: string;
@@ -405,7 +505,14 @@ export type DesignState = {
     pocket: string;
     color: string;
   };
+  /** Pattern for the dress / shirt / jacket. */
   pattern: {
+    name: string;
+    primary: string;
+    secondary: string;
+  };
+  /** Independent pattern for trousers / bottoms. */
+  pantsPattern: {
     name: string;
     primary: string;
     secondary: string;
@@ -419,6 +526,7 @@ export const defaultDesign = (gender: Gender): DesignState => ({
   size: "M",
   category: gender === "female" ? "dress" : "separates",
   fabric: "Cotton",
+  disability: "none",
   dress: {
     neckline: "V-neck",
     sleeve: "Short",
@@ -430,6 +538,7 @@ export const defaultDesign = (gender: Gender): DesignState => ({
   },
   shirt: {
     collar: "Spread",
+    sleeve: "Long",
     cuff: "Barrel",
     placket: "Conventional",
     yoke: "One-piece",
@@ -449,6 +558,11 @@ export const defaultDesign = (gender: Gender): DesignState => ({
     color: "#3C4657",
   },
   pattern: {
+    name: "None",
+    primary: "#C9A227",
+    secondary: "#FFFFFF",
+  },
+  pantsPattern: {
     name: "None",
     primary: "#C9A227",
     secondary: "#FFFFFF",
@@ -504,6 +618,7 @@ export const FEMALE_PRESETS: Preset[] = [
       category: "separates",
       fabric: "Cotton",
       shirt: {
+        sleeve: "Long",
         collar: "Spread",
         cuff: "French",
         placket: "Hidden",
@@ -543,7 +658,7 @@ export const MALE_PRESETS: Preset[] = [
     patch: {
       category: "suit",
       fabric: "Satin",
-      shirt: { collar: "Wingtip", cuff: "French", placket: "Tuxedo", yoke: "Split", color: "#FBF7F2" },
+      shirt: { sleeve: "Long", collar: "Wingtip", cuff: "French", placket: "Tuxedo", yoke: "Split", color: "#FBF7F2" },
       pants: { waistband: "Side-tab", fly: "Button", hem: "Straight", color: "#20242F" },
       jacket: { enabled: true, lapel: "Peak", vent: "Double", pocket: "Jetted", color: "#20242F" },
       pattern: { name: "None", primary: "#C9A227", secondary: "#FFFFFF" },
@@ -556,7 +671,7 @@ export const MALE_PRESETS: Preset[] = [
     patch: {
       category: "suit",
       fabric: "Cotton",
-      shirt: { collar: "Spread", cuff: "Barrel", placket: "Conventional", yoke: "One-piece", color: "#DCE6F0" },
+      shirt: { sleeve: "Long", collar: "Spread", cuff: "Barrel", placket: "Conventional", yoke: "One-piece", color: "#DCE6F0" },
       pants: { waistband: "Extended", fly: "Zipper", hem: "Turned-up", color: "#39435A" },
       jacket: { enabled: true, lapel: "Notch", vent: "Single", pocket: "Welt", color: "#39435A" },
       pattern: { name: "Chalkstripe", primary: "#96A2BA", secondary: "#39435A" },
@@ -569,7 +684,7 @@ export const MALE_PRESETS: Preset[] = [
     patch: {
       category: "separates",
       fabric: "Cotton",
-      shirt: { collar: "Camp", cuff: "Rounded", placket: "Popover", yoke: "Ventilated", color: "#F4D7DA" },
+      shirt: { sleeve: "Long", collar: "Camp", cuff: "Rounded", placket: "Popover", yoke: "Ventilated", color: "#F4D7DA" },
       pants: { waistband: "Drawstring", fly: "Button", hem: "Raw-edge", color: "#E8DFC9" },
       jacket: { enabled: false, lapel: "Notch", vent: "No-vent", pocket: "Patch", color: "#E8DFC9" },
       pattern: { name: "Awning", primary: "#D98BA0", secondary: "#FBF7F2" },
@@ -582,7 +697,7 @@ export const MALE_PRESETS: Preset[] = [
     patch: {
       category: "separates",
       fabric: "Silk",
-      shirt: { collar: "Mandarin", cuff: "Gauntlet", placket: "Zipper", yoke: "Bi-swing", color: "#2F3440" },
+      shirt: { sleeve: "Long", collar: "Mandarin", cuff: "Gauntlet", placket: "Zipper", yoke: "Bi-swing", color: "#2F3440" },
       pants: { waistband: "Elastic", fly: "Zipper", hem: "Elastic-jogger", color: "#3F4654" },
       jacket: { enabled: false, lapel: "Mao", vent: "Action-back", pocket: "Hidden-zipper", color: "#2F3440" },
       pattern: { name: "Camo", primary: "#5C6B4E", secondary: "#2F3440" },
@@ -604,7 +719,8 @@ export const QUOTES = [
 export function designPrice(d: DesignState): number {
   const base = d.category === "suit" ? 640 : d.category === "dress" ? 420 : 380;
   const fabric = FABRICS.find((f) => f.id === d.fabric)?.price ?? 0;
-  const pattern = d.pattern.name === "None" ? 0 : 45;
+  const pattern = (d.pattern.name === "None" ? 0 : 45) +
+    (d.category !== "dress" && d.pantsPattern.name !== "None" ? 35 : 0);
   const jacket = d.category === "suit" && d.jacket.enabled ? 0 : 0;
   return base + fabric + pattern + jacket;
 }
@@ -624,6 +740,9 @@ export function designSummary(d: DesignState): { label: string; value: string }[
     { label: "Fabric", value: d.fabric },
     { label: "Pattern", value: d.pattern.name },
   ];
+  if (d.disability !== "none") {
+    rows.push({ label: "Adaptive fit", value: disabilityFor(d.disability).label });
+  }
   if (d.pattern.name !== "None") {
     rows.push({ label: "Pattern colors", value: `${d.pattern.primary} / ${d.pattern.secondary}` });
   }
@@ -640,6 +759,7 @@ export function designSummary(d: DesignState): { label: string; value: string }[
   } else {
     rows.push(
       { label: "Shirt collar", value: d.shirt.collar },
+      { label: "Sleeve length", value: d.shirt.sleeve },
       { label: "Cuffs", value: d.shirt.cuff },
       { label: "Placket", value: d.shirt.placket },
       { label: "Yoke", value: d.shirt.yoke },
@@ -648,6 +768,7 @@ export function designSummary(d: DesignState): { label: string; value: string }[
       { label: "Fly", value: d.pants.fly },
       { label: "Bottom hem", value: d.pants.hem },
       { label: "Bottom color", value: d.pants.color },
+      { label: "Bottoms pattern", value: d.pantsPattern.name },
     );
     if (d.category === "suit") {
       rows.push(

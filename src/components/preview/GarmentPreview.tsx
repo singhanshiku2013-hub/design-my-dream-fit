@@ -4,6 +4,7 @@ import {
   FABRICS,
   SIZE_SCALE,
   bodyShapesFor,
+  disabilityFor,
   type DesignState,
 } from "@/lib/design/options";
 
@@ -52,6 +53,7 @@ const SKIRT_WIDTH: Record<string, number> = {
 };
 
 const SLEEVE_LEN: Record<string, number> = {
+  Sleeveless: 0,
   Cap: 0.1,
   Short: 0.22,
   "Three-quarter": 0.42,
@@ -67,6 +69,7 @@ const SLEEVE_LEN: Record<string, number> = {
 };
 
 const SLEEVE_FLARE: Record<string, number> = {
+  Sleeveless: 1,
   Cap: 1,
   Short: 0.95,
   "Three-quarter": 0.8,
@@ -100,31 +103,49 @@ function Piece({ d, color, patternId, sheen, stroke }: PieceProps) {
   );
 }
 
-function hemEdge(hemline: string, hw: number, y: number): string {
+/** Hem drawn left-to-right, continuing from the left hem point. */
+function hemAcross(hemline: string, hw: number, y: number): string {
   const left = CX - hw;
   const right = CX + hw;
   switch (hemline) {
     case "Asymmetric":
-      return `L ${right} ${y - 60} L ${left} ${y}`;
+      return `L ${right} ${y - 66}`;
     case "High-low":
-      return `L ${right} ${y} Q ${CX} ${y - 90} ${left} ${y}`;
+      return `Q ${CX} ${y - 96} ${right} ${y}`;
     case "Handkerchief": {
       const step = (right - left) / 4;
-      return `L ${right} ${y - 46} L ${right - step} ${y} L ${right - 2 * step} ${y - 46} L ${right - 3 * step} ${y} L ${left} ${y - 46}`;
+      return `L ${left + step} ${y - 46} L ${left + 2 * step} ${y} L ${left + 3 * step} ${y - 46} L ${right} ${y}`;
     }
     default:
-      return `L ${right} ${y} L ${left} ${y}`;
+      return `L ${right} ${y}`;
   }
 }
 
 export function GarmentPreview({ design }: { design: DesignState }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const patternId = design.pattern.name === "None" ? undefined : `pat-${uid}`;
+  const pantsPatternId =
+    design.pantsPattern.name === "None" ? undefined : `patb-${uid}`;
   const shapes = bodyShapesFor(design.gender);
   const shape = shapes.find((b) => b.id === design.bodyShape) ?? shapes[0]!;
   const s = SIZE_SCALE[design.size];
   const sheen = FABRICS.find((f) => f.id === design.fabric)?.sheen ?? 0.1;
   const back = design.view === "back";
+
+  // ---- adaptive fit / limb difference -----------------------------------
+  const dis = disabilityFor(design.disability);
+  const affects = (dir: number) =>
+    dis.sides === 2 || (dis.sides === 1 && dir === (back ? -1 : 1));
+  const legCut = (dir: number) => {
+    if (dis.limb !== "leg" || !affects(dir)) return H;
+    return dis.level === "above-knee" ? HIP_Y + 118 : HIP_Y + 236;
+  };
+  const armCut = (dir: number) => {
+    if (dis.limb !== "arm" || !affects(dir)) return H;
+    return dis.level === "full-arm" ? SHOULDER_Y + 12 : SHOULDER_Y + 158;
+  };
+  const legsClip = `legs-${uid}`;
+  const armsClip = `arms-${uid}`;
 
   const SH = 94 * shape.shoulder * s;
   const WH = 74 * shape.waist * s;
@@ -183,28 +204,53 @@ export function GarmentPreview({ design }: { design: DesignState }) {
     Z`;
   };
 
-  const skirtHemY = waistY + (FLOOR_Y - waistY) * (HEM_FACTOR[design.dress.hemline] ?? 0.6);
-  const skirtHW = WH * (SKIRT_WIDTH[design.dress.skirt] ?? 1.6) + 6;
-  const kneeY = waistY + (skirtHemY - waistY) * 0.55;
+  const hemFactor = HEM_FACTOR[design.dress.hemline] ?? 0.6;
+  const skirtHemY = waistY + (FLOOR_Y - waistY) * hemFactor;
   const mermaid = design.dress.skirt === "Mermaid";
-  const flare = design.dress.skirt === "Fit-and-flare" || mermaid;
-  const midHW = flare ? WH * 1.05 : (WH + skirtHW) / 2;
+  const straight = design.dress.skirt === "Pencil" || design.dress.skirt === "Sheath";
+  const wide = SKIRT_WIDTH[design.dress.skirt] ?? 1.6;
+  // The skirt has to clear the real hip width of the chosen body shape, so it
+  // is anchored on HH (hip) instead of only scaling from the waist. That keeps
+  // pear and hourglass silhouettes accurate instead of pinching at the hips.
+  const hipLevelY = Math.min(HIP_Y + 14, waistY + (skirtHemY - waistY) * 0.55);
+  const hipHW = HH + 7;
+  const hemHW = mermaid
+    ? hipHW * 1.5
+    : straight
+      ? hipHW * 0.98
+      : Math.max(hipHW + 10, HH * wide * 0.92);
+  const kneeY = hipLevelY + (skirtHemY - hipLevelY) * 0.55;
+  const kneeHW = mermaid
+    ? hipHW * 0.74
+    : hipHW + (hemHW - hipHW) * (design.dress.skirt === "Fit-and-flare" ? 0.28 : 0.62);
+  const skirtHW = hemHW;
+
+  const skirtSideDown = (dir: number) => `
+    C ${CX + dir * (WH + 8)} ${waistY + 20} ${CX + dir * hipHW} ${hipLevelY - 26} ${CX + dir * hipHW} ${hipLevelY}
+    C ${CX + dir * hipHW} ${hipLevelY + 18} ${CX + dir * kneeHW} ${kneeY - 26} ${CX + dir * kneeHW} ${kneeY}
+    C ${CX + dir * kneeHW} ${kneeY + 20} ${CX + dir * hemHW} ${skirtHemY - 30} ${CX + dir * hemHW} ${skirtHemY}`;
+  const skirtSideUp = (dir: number) => `
+    C ${CX + dir * hemHW} ${skirtHemY - 30} ${CX + dir * kneeHW} ${kneeY + 20} ${CX + dir * kneeHW} ${kneeY}
+    C ${CX + dir * kneeHW} ${kneeY - 26} ${CX + dir * hipHW} ${hipLevelY + 18} ${CX + dir * hipHW} ${hipLevelY}
+    C ${CX + dir * hipHW} ${hipLevelY - 26} ${CX + dir * (WH + 8)} ${waistY + 20} ${CX + dir * WH} ${waistY}`;
 
   const skirtPath = `
     M ${CX - WH} ${waistY}
-    C ${CX - midHW} ${kneeY - 30} ${CX - midHW} ${kneeY} ${CX - (mermaid ? midHW : (WH + skirtHW) / 2)} ${kneeY}
-    C ${CX - skirtHW} ${skirtHemY - 60} ${CX - skirtHW} ${skirtHemY - 20} ${CX - skirtHW} ${skirtHemY}
-    ${hemEdge(design.dress.hemline, skirtHW, skirtHemY).replace(`L ${CX + skirtHW}`, `L ${CX + skirtHW}`)}
-    C ${CX + skirtHW} ${skirtHemY - 20} ${CX + skirtHW} ${skirtHemY - 60} ${CX + (mermaid ? midHW : (WH + skirtHW) / 2)} ${kneeY}
-    C ${CX + midHW} ${kneeY} ${CX + midHW} ${kneeY - 30} ${CX + WH} ${waistY}
+    ${skirtSideDown(-1)}
+    ${hemAcross(design.dress.hemline, hemHW, skirtHemY)}
+    ${skirtSideUp(1)}
     Z`;
 
-  const sleeveLen = SLEEVE_LEN[design.dress.sleeve] ?? 0.25;
-  const sleeveFlare = SLEEVE_FLARE[design.dress.sleeve] ?? 1;
+  const sleeveName =
+    design.category === "dress" ? design.dress.sleeve : design.shirt.sleeve;
+  const sleeveLen = SLEEVE_LEN[sleeveName] ?? 0.25;
+  const sleeveFlare = SLEEVE_FLARE[sleeveName] ?? 1;
+  const sleeveEndY = SHOULDER_Y + (FLOOR_Y - SHOULDER_Y) * sleeveLen * 0.62;
+  const sleeveless = sleeveName === "Sleeveless";
   const sleevePath = (dir: number) => {
     const topX = CX + dir * (SH + 2);
-    const endY = SHOULDER_Y + (FLOOR_Y - SHOULDER_Y) * sleeveLen * 0.62;
-    const capOut = 26 * s * (design.dress.sleeve === "Puff" || design.dress.sleeve === "Juliet" ? 1.5 : 1);
+    const endY = sleeveEndY;
+    const capOut = 26 * s * (sleeveName === "Puff" || sleeveName === "Juliet" ? 1.5 : 1);
     const endHW = 24 * s * sleeveFlare;
     return `
       M ${topX} ${SHOULDER_Y - 4}
@@ -521,11 +567,14 @@ export function GarmentPreview({ design }: { design: DesignState }) {
   };
 
   const cuffs = (dir: number) => {
-    if (design.category === "dress") return null;
-    const y = HIP_Y + 56;
-    const x = CX + dir * (SH + 6);
+    if (design.category === "dress" || sleeveless) return null;
     const spec = CUFF_SPEC[design.shirt.cuff] ?? CUFF_SPEC["Barrel"]!;
-    const left = x - dir * 16 - (dir > 0 ? 0 : spec.w);
+    // the cuff finishes the sleeve, so it is anchored to where the sleeve ends
+    const y = sleeveEndY - spec.h + 3;
+    if (armCut(dir) < y + spec.h) return null;
+    const endHW = 24 * s * sleeveFlare;
+    const x = CX + dir * (SH + 2 + endHW * 0.5);
+    const left = x - dir * 4 - spec.w / 2;
     return (
       <g>
         {spec.slant ? (
@@ -648,14 +697,50 @@ export function GarmentPreview({ design }: { design: DesignState }) {
       );
     }
     if (design.dress.skirt === "Peplum") {
+      const pw = WH + 58 * s;
+      const bot = waistY + 92 * s;
+      const scallops = 6;
+      const step = (pw * 2) / scallops;
+      let hem = `M ${CX - pw} ${bot - 20}`;
+      for (let i = 0; i < scallops; i++) {
+        const x0 = CX - pw + step * i;
+        const x1 = x0 + step;
+        hem += ` Q ${(x0 + x1) / 2} ${bot + 14} ${x1} ${bot - 20}`;
+      }
+      const flounce = `
+        M ${CX - WH} ${waistY - 2}
+        C ${CX - WH - 18} ${waistY + 26} ${CX - pw} ${bot - 62} ${CX - pw} ${bot - 20}
+        ${hem.replace(`M ${CX - pw} ${bot - 20}`, "")}
+        C ${CX + pw} ${bot - 62} ${CX + WH + 18} ${waistY + 26} ${CX + WH} ${waistY - 2}
+        Z`;
       lines.push(
-        <path
-          key="peplum"
-          d={`M ${CX - WH - 26} ${waistY + 46} Q ${CX} ${waistY + 74} ${CX + WH + 26} ${waistY + 46} Q ${CX} ${waistY - 4} ${CX - WH - 26} ${waistY + 46} Z`}
-          fill={design.dress.color}
-          opacity={0.95}
-          stroke="rgba(0,0,0,.15)"
-        />,
+        <g key="peplum">
+          {/* shadow the flounce casts on the skirt beneath it */}
+          <path
+            d={flounce}
+            fill="rgba(0,0,0,.16)"
+            transform={`translate(0 ${10 * s})`}
+          />
+          <path d={flounce} fill={design.dress.color} stroke="rgba(0,0,0,.18)" />
+          <path d={flounce} fill="url(#dmd-sheen)" opacity={sheen} />
+          {Array.from({ length: 7 }).map((_, i) => {
+            const t = (i - 3) / 3;
+            return (
+              <path
+                key={i}
+                d={`M ${CX + t * WH * 0.9} ${waistY + 4} Q ${CX + t * pw * 0.9} ${bot - 46} ${CX + t * pw} ${bot - 22}`}
+                stroke="rgba(0,0,0,.14)"
+                strokeWidth="1.2"
+                fill="none"
+              />
+            );
+          })}
+          <path
+            d={`M ${CX - WH - 2} ${waistY} L ${CX + WH + 2} ${waistY}`}
+            stroke="rgba(0,0,0,.28)"
+            strokeWidth="3"
+          />
+        </g>,
       );
     }
     return <g>{lines}</g>;
@@ -743,6 +828,55 @@ export function GarmentPreview({ design }: { design: DesignState }) {
     );
   };
 
+  /** Rounded caps where a limb (or its garment) ends. */
+  const stumps = (layer: "skin" | "pants") => {
+    if (dis.limb === "none") return null;
+    if (layer === "pants" && (dis.limb !== "leg" || design.category === "dress")) return null;
+    if (layer === "skin" && dis.limb === "leg" && design.category !== "dress") {
+      // the trouser cap covers it
+      if (dis.level === "above-knee" || dis.level === "below-knee") return null;
+    }
+    const dirs: number[] = dis.sides === 2 ? [-1, 1] : [back ? -1 : 1];
+    return (
+      <g>
+        {dirs.map((dir) => {
+          if (dis.limb === "leg") {
+            const y = legCut(dir);
+            const near = dis.level === "above-knee";
+            const cx = CX + dir * (HH * (near ? 0.55 : 0.42));
+            const rx = (near ? 30 : 22) * s;
+            return (
+              <ellipse
+                key={`l${dir}`}
+                cx={cx}
+                cy={y - 2}
+                rx={rx}
+                ry={rx * 0.42}
+                fill={layer === "pants" ? design.pants.color : skinShade}
+                stroke="rgba(0,0,0,.18)"
+              />
+            );
+          }
+          const y = armCut(dir);
+          const full = dis.level === "full-arm";
+          const cx = CX + dir * (SH + (full ? 2 : 10));
+          const rx = (full ? 20 : 13) * s;
+          return (
+            <ellipse
+              key={`a${dir}`}
+              cx={cx}
+              cy={y - 2}
+              rx={rx}
+              ry={rx * 0.5}
+              fill={skinShade}
+              stroke="rgba(0,0,0,.16)"
+            />
+          );
+        })}
+      </g>
+    );
+  };
+
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
@@ -759,6 +893,14 @@ export function GarmentPreview({ design }: { design: DesignState }) {
             secondary={design.pattern.secondary}
           />
         ) : null}
+        {pantsPatternId ? (
+          <PatternDef
+            id={pantsPatternId}
+            name={design.pantsPattern.name}
+            primary={design.pantsPattern.primary}
+            secondary={design.pantsPattern.secondary}
+          />
+        ) : null}
         <linearGradient id="dmd-sheen" x1="0" y1="0" x2="1" y2="0.4">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.05" />
           <stop offset="35%" stopColor="#ffffff" stopOpacity="0.95" />
@@ -771,6 +913,14 @@ export function GarmentPreview({ design }: { design: DesignState }) {
           <stop offset="75%" stopColor="#000000" stopOpacity="0" />
           <stop offset="100%" stopColor="#000000" stopOpacity="0.3" />
         </linearGradient>
+        <clipPath id={legsClip}>
+          <rect x={0} y={0} width={CX} height={legCut(-1)} />
+          <rect x={CX} y={0} width={W - CX} height={legCut(1)} />
+        </clipPath>
+        <clipPath id={armsClip}>
+          <rect x={0} y={0} width={CX} height={armCut(-1)} />
+          <rect x={CX} y={0} width={W - CX} height={armCut(1)} />
+        </clipPath>
         <radialGradient id="dmd-floor" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0%" stopColor="#000000" stopOpacity="0.18" />
           <stop offset="100%" stopColor="#000000" stopOpacity="0" />
@@ -781,11 +931,16 @@ export function GarmentPreview({ design }: { design: DesignState }) {
 
       {/* body */}
       <g>
-        <path d={leg(-1)} fill={skin} />
-        <path d={leg(1)} fill={skinShade} />
+        <g clipPath={`url(#${legsClip})`}>
+          <path d={leg(-1)} fill={skin} />
+          <path d={leg(1)} fill={skinShade} />
+        </g>
         <path d={torso} fill={skin} />
-        <path d={arm(-1)} fill={skin} />
-        <path d={arm(1)} fill={skinShade} />
+        <g clipPath={`url(#${armsClip})`}>
+          <path d={arm(-1)} fill={skin} />
+          <path d={arm(1)} fill={skinShade} />
+        </g>
+        {stumps("skin")}
         <rect x={CX - 13 * s} y={94} width={26 * s} height={34} fill={skinShade} />
         <circle cx={CX} cy={64} r={30 * s} fill={skin} />
         {back ? (
@@ -808,8 +963,12 @@ export function GarmentPreview({ design }: { design: DesignState }) {
           <Piece d={skirtPath} color={design.dress.color} patternId={patternId} sheen={sheen} />
           {skirtDetails()}
           <Piece d={bodice(waistY + 2, WH)} color={design.dress.color} patternId={patternId} sheen={sheen} />
-          <Piece d={sleevePath(-1)} color={design.dress.color} patternId={patternId} sheen={sheen} />
-          <Piece d={sleevePath(1)} color={design.dress.color} patternId={patternId} sheen={sheen} />
+          {sleeveless ? null : (
+            <g clipPath={`url(#${armsClip})`}>
+              <Piece d={sleevePath(-1)} color={design.dress.color} patternId={patternId} sheen={sheen} />
+              <Piece d={sleevePath(1)} color={design.dress.color} patternId={patternId} sheen={sheen} />
+            </g>
+          )}
           {waistDetail()}
           {!back ? <path d={necklinePath()} fill={skin} /> : null}
           {collarShape()}
@@ -817,9 +976,12 @@ export function GarmentPreview({ design }: { design: DesignState }) {
         </g>
       ) : (
         <g>
-          <Piece d={pantLeg(-1)} color={design.pants.color} patternId={patternId} sheen={sheen} />
-          <Piece d={pantLeg(1)} color={design.pants.color} patternId={patternId} sheen={sheen} />
-          {pantHemDetail()}
+          <g clipPath={`url(#${legsClip})`}>
+            <Piece d={pantLeg(-1)} color={design.pants.color} patternId={pantsPatternId} sheen={sheen} />
+            <Piece d={pantLeg(1)} color={design.pants.color} patternId={pantsPatternId} sheen={sheen} />
+            {pantHemDetail()}
+          </g>
+          {stumps("pants")}
           {waistbandDetail()}
           <Piece
             d={shirtPath}
@@ -829,10 +991,14 @@ export function GarmentPreview({ design }: { design: DesignState }) {
           />
           {/* fly / drawstring paint after the shirt so they are never buried */}
           {flyDetail()}
-          <Piece d={sleevePath(-1)} color={design.shirt.color} sheen={sheen} />
-          <Piece d={sleevePath(1)} color={design.shirt.color} sheen={sheen} />
-          {cuffs(-1)}
-          {cuffs(1)}
+          {sleeveless ? null : (
+            <g clipPath={`url(#${armsClip})`}>
+              <Piece d={sleevePath(-1)} color={design.shirt.color} sheen={sheen} />
+              <Piece d={sleevePath(1)} color={design.shirt.color} sheen={sheen} />
+              {cuffs(-1)}
+              {cuffs(1)}
+            </g>
+          )}
           {plackets()}
           {design.category === "suit" && design.jacket.enabled ? (
             <g>

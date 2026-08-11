@@ -15,6 +15,7 @@ export const suggestionSchema = z.object({
       fabric: z.string().optional(),
       size: z.string().optional(),
       bodyShape: z.string().optional(),
+      disability: z.string().optional(),
       dress: z
         .object({
           neckline: z.string().optional(),
@@ -29,6 +30,7 @@ export const suggestionSchema = z.object({
       shirt: z
         .object({
           collar: z.string().optional(),
+          sleeve: z.string().optional(),
           cuff: z.string().optional(),
           placket: z.string().optional(),
           yoke: z.string().optional(),
@@ -53,6 +55,13 @@ export const suggestionSchema = z.object({
         })
         .optional(),
       pattern: z
+        .object({
+          name: z.string().optional(),
+          primary: hex,
+          secondary: hex,
+        })
+        .optional(),
+      pantsPattern: z
         .object({
           name: z.string().optional(),
           primary: hex,
