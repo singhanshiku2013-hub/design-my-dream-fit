@@ -32,7 +32,7 @@ const BENEFITS = [
   {
     icon: Gem,
     title: "Premium fabrics",
-    body: "Cotton, silk, chiffon and satin — each with its own drape, sheen and personality.",
+    body: "Cotton, silk, chiffon and satin. Each with its own drape, sheen and personality.",
   },
   {
     icon: Sparkle,
@@ -42,7 +42,7 @@ const BENEFITS = [
   {
     icon: HeartHandshake,
     title: "Total customization",
-    body: "Necklines, sleeves, collars, waistlines, hems, patterns and colours — down to the hex code.",
+    body: "Necklines, sleeves, collars, waistlines, hems, patterns and colours , down to the hex code.",
   },
 ];
 
@@ -60,7 +60,7 @@ function Home() {
           </h1>
           <p className="max-w-xl text-base text-muted-foreground">
             Chic Canvas is an atelier in your browser. Choose the neckline, the fall of the skirt,
-            the sheen of the fabric and the exact shade — then watch it come alive on a model shaped
+            the sheen of the fabric and the exact shade and then watch it come alive on a model shaped
             like you.
           </p>
           <div className="flex flex-wrap items-center gap-3">
@@ -96,7 +96,7 @@ function Home() {
         <p className="text-muted-foreground">
           Fashion houses chase trends. Local tailors are limited by their pattern books. We built the
           middle path: atelier-grade construction, an endless catalogue of cuts and patterns, and a
-          fit derived from your own proportions. Nothing here asks you to change shape — the garment
+          fit derived from your own proportions. Nothing here asks you to change shape , the garment
           does the changing.
         </p>
       </section>
