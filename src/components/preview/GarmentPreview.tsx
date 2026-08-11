@@ -124,11 +124,28 @@ function hemAcross(hemline: string, hw: number, y: number): string {
 export function GarmentPreview({ design }: { design: DesignState }) {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
   const patternId = design.pattern.name === "None" ? undefined : `pat-${uid}`;
+  const pantsPatternId =
+    design.pantsPattern.name === "None" ? undefined : `patb-${uid}`;
   const shapes = bodyShapesFor(design.gender);
   const shape = shapes.find((b) => b.id === design.bodyShape) ?? shapes[0]!;
   const s = SIZE_SCALE[design.size];
   const sheen = FABRICS.find((f) => f.id === design.fabric)?.sheen ?? 0.1;
   const back = design.view === "back";
+
+  // ---- adaptive fit / limb difference -----------------------------------
+  const dis = disabilityFor(design.disability);
+  const affects = (dir: number) =>
+    dis.sides === 2 || (dis.sides === 1 && dir === (back ? -1 : 1));
+  const legCut = (dir: number) => {
+    if (dis.limb !== "leg" || !affects(dir)) return H;
+    return dis.level === "above-knee" ? HIP_Y + 118 : HIP_Y + 236;
+  };
+  const armCut = (dir: number) => {
+    if (dis.limb !== "arm" || !affects(dir)) return H;
+    return dis.level === "full-arm" ? SHOULDER_Y + 12 : SHOULDER_Y + 158;
+  };
+  const legsClip = `legs-${uid}`;
+  const armsClip = `arms-${uid}`;
 
   const SH = 94 * shape.shoulder * s;
   const WH = 74 * shape.waist * s;
@@ -680,14 +697,50 @@ export function GarmentPreview({ design }: { design: DesignState }) {
       );
     }
     if (design.dress.skirt === "Peplum") {
+      const pw = WH + 58 * s;
+      const bot = waistY + 92 * s;
+      const scallops = 6;
+      const step = (pw * 2) / scallops;
+      let hem = `M ${CX - pw} ${bot - 20}`;
+      for (let i = 0; i < scallops; i++) {
+        const x0 = CX - pw + step * i;
+        const x1 = x0 + step;
+        hem += ` Q ${(x0 + x1) / 2} ${bot + 14} ${x1} ${bot - 20}`;
+      }
+      const flounce = `
+        M ${CX - WH} ${waistY - 2}
+        C ${CX - WH - 18} ${waistY + 26} ${CX - pw} ${bot - 62} ${CX - pw} ${bot - 20}
+        ${hem.replace(`M ${CX - pw} ${bot - 20}`, "")}
+        C ${CX + pw} ${bot - 62} ${CX + WH + 18} ${waistY + 26} ${CX + WH} ${waistY - 2}
+        Z`;
       lines.push(
-        <path
-          key="peplum"
-          d={`M ${CX - WH - 26} ${waistY + 46} Q ${CX} ${waistY + 74} ${CX + WH + 26} ${waistY + 46} Q ${CX} ${waistY - 4} ${CX - WH - 26} ${waistY + 46} Z`}
-          fill={design.dress.color}
-          opacity={0.95}
-          stroke="rgba(0,0,0,.15)"
-        />,
+        <g key="peplum">
+          {/* shadow the flounce casts on the skirt beneath it */}
+          <path
+            d={flounce}
+            fill="rgba(0,0,0,.16)"
+            transform={`translate(0 ${10 * s})`}
+          />
+          <path d={flounce} fill={design.dress.color} stroke="rgba(0,0,0,.18)" />
+          <path d={flounce} fill="url(#dmd-sheen)" opacity={sheen} />
+          {Array.from({ length: 7 }).map((_, i) => {
+            const t = (i - 3) / 3;
+            return (
+              <path
+                key={i}
+                d={`M ${CX + t * WH * 0.9} ${waistY + 4} Q ${CX + t * pw * 0.9} ${bot - 46} ${CX + t * pw} ${bot - 22}`}
+                stroke="rgba(0,0,0,.14)"
+                strokeWidth="1.2"
+                fill="none"
+              />
+            );
+          })}
+          <path
+            d={`M ${CX - WH - 2} ${waistY} L ${CX + WH + 2} ${waistY}`}
+            stroke="rgba(0,0,0,.28)"
+            strokeWidth="3"
+          />
+        </g>,
       );
     }
     return <g>{lines}</g>;
