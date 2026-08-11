@@ -4,6 +4,7 @@ import {
   FABRICS,
   SIZE_SCALE,
   bodyShapesFor,
+  disabilityFor,
   type DesignState,
 } from "@/lib/design/options";
 
@@ -52,6 +53,7 @@ const SKIRT_WIDTH: Record<string, number> = {
 };
 
 const SLEEVE_LEN: Record<string, number> = {
+  Sleeveless: 0,
   Cap: 0.1,
   Short: 0.22,
   "Three-quarter": 0.42,
@@ -67,6 +69,7 @@ const SLEEVE_LEN: Record<string, number> = {
 };
 
 const SLEEVE_FLARE: Record<string, number> = {
+  Sleeveless: 1,
   Cap: 1,
   Short: 0.95,
   "Three-quarter": 0.8,
@@ -100,20 +103,21 @@ function Piece({ d, color, patternId, sheen, stroke }: PieceProps) {
   );
 }
 
-function hemEdge(hemline: string, hw: number, y: number): string {
+/** Hem drawn left-to-right, continuing from the left hem point. */
+function hemAcross(hemline: string, hw: number, y: number): string {
   const left = CX - hw;
   const right = CX + hw;
   switch (hemline) {
     case "Asymmetric":
-      return `L ${right} ${y - 60} L ${left} ${y}`;
+      return `L ${right} ${y - 66}`;
     case "High-low":
-      return `L ${right} ${y} Q ${CX} ${y - 90} ${left} ${y}`;
+      return `Q ${CX} ${y - 96} ${right} ${y}`;
     case "Handkerchief": {
       const step = (right - left) / 4;
-      return `L ${right} ${y - 46} L ${right - step} ${y} L ${right - 2 * step} ${y - 46} L ${right - 3 * step} ${y} L ${left} ${y - 46}`;
+      return `L ${left + step} ${y - 46} L ${left + 2 * step} ${y} L ${left + 3 * step} ${y - 46} L ${right} ${y}`;
     }
     default:
-      return `L ${right} ${y} L ${left} ${y}`;
+      return `L ${right} ${y}`;
   }
 }
 
@@ -183,28 +187,53 @@ export function GarmentPreview({ design }: { design: DesignState }) {
     Z`;
   };
 
-  const skirtHemY = waistY + (FLOOR_Y - waistY) * (HEM_FACTOR[design.dress.hemline] ?? 0.6);
-  const skirtHW = WH * (SKIRT_WIDTH[design.dress.skirt] ?? 1.6) + 6;
-  const kneeY = waistY + (skirtHemY - waistY) * 0.55;
+  const hemFactor = HEM_FACTOR[design.dress.hemline] ?? 0.6;
+  const skirtHemY = waistY + (FLOOR_Y - waistY) * hemFactor;
   const mermaid = design.dress.skirt === "Mermaid";
-  const flare = design.dress.skirt === "Fit-and-flare" || mermaid;
-  const midHW = flare ? WH * 1.05 : (WH + skirtHW) / 2;
+  const straight = design.dress.skirt === "Pencil" || design.dress.skirt === "Sheath";
+  const wide = SKIRT_WIDTH[design.dress.skirt] ?? 1.6;
+  // The skirt has to clear the real hip width of the chosen body shape, so it
+  // is anchored on HH (hip) instead of only scaling from the waist. That keeps
+  // pear and hourglass silhouettes accurate instead of pinching at the hips.
+  const hipLevelY = Math.min(HIP_Y + 14, waistY + (skirtHemY - waistY) * 0.55);
+  const hipHW = HH + 7;
+  const hemHW = mermaid
+    ? hipHW * 1.5
+    : straight
+      ? hipHW * 0.98
+      : Math.max(hipHW + 10, HH * wide * 0.92);
+  const kneeY = hipLevelY + (skirtHemY - hipLevelY) * 0.55;
+  const kneeHW = mermaid
+    ? hipHW * 0.74
+    : hipHW + (hemHW - hipHW) * (design.dress.skirt === "Fit-and-flare" ? 0.28 : 0.62);
+  const skirtHW = hemHW;
+
+  const skirtSideDown = (dir: number) => `
+    C ${CX + dir * (WH + 8)} ${waistY + 20} ${CX + dir * hipHW} ${hipLevelY - 26} ${CX + dir * hipHW} ${hipLevelY}
+    C ${CX + dir * hipHW} ${hipLevelY + 18} ${CX + dir * kneeHW} ${kneeY - 26} ${CX + dir * kneeHW} ${kneeY}
+    C ${CX + dir * kneeHW} ${kneeY + 20} ${CX + dir * hemHW} ${skirtHemY - 30} ${CX + dir * hemHW} ${skirtHemY}`;
+  const skirtSideUp = (dir: number) => `
+    C ${CX + dir * hemHW} ${skirtHemY - 30} ${CX + dir * kneeHW} ${kneeY + 20} ${CX + dir * kneeHW} ${kneeY}
+    C ${CX + dir * kneeHW} ${kneeY - 26} ${CX + dir * hipHW} ${hipLevelY + 18} ${CX + dir * hipHW} ${hipLevelY}
+    C ${CX + dir * hipHW} ${hipLevelY - 26} ${CX + dir * (WH + 8)} ${waistY + 20} ${CX + dir * WH} ${waistY}`;
 
   const skirtPath = `
     M ${CX - WH} ${waistY}
-    C ${CX - midHW} ${kneeY - 30} ${CX - midHW} ${kneeY} ${CX - (mermaid ? midHW : (WH + skirtHW) / 2)} ${kneeY}
-    C ${CX - skirtHW} ${skirtHemY - 60} ${CX - skirtHW} ${skirtHemY - 20} ${CX - skirtHW} ${skirtHemY}
-    ${hemEdge(design.dress.hemline, skirtHW, skirtHemY).replace(`L ${CX + skirtHW}`, `L ${CX + skirtHW}`)}
-    C ${CX + skirtHW} ${skirtHemY - 20} ${CX + skirtHW} ${skirtHemY - 60} ${CX + (mermaid ? midHW : (WH + skirtHW) / 2)} ${kneeY}
-    C ${CX + midHW} ${kneeY} ${CX + midHW} ${kneeY - 30} ${CX + WH} ${waistY}
+    ${skirtSideDown(-1)}
+    ${hemAcross(design.dress.hemline, hemHW, skirtHemY)}
+    ${skirtSideUp(1)}
     Z`;
 
-  const sleeveLen = SLEEVE_LEN[design.dress.sleeve] ?? 0.25;
-  const sleeveFlare = SLEEVE_FLARE[design.dress.sleeve] ?? 1;
+  const sleeveName =
+    design.category === "dress" ? design.dress.sleeve : design.shirt.sleeve;
+  const sleeveLen = SLEEVE_LEN[sleeveName] ?? 0.25;
+  const sleeveFlare = SLEEVE_FLARE[sleeveName] ?? 1;
+  const sleeveEndY = SHOULDER_Y + (FLOOR_Y - SHOULDER_Y) * sleeveLen * 0.62;
+  const sleeveless = sleeveName === "Sleeveless";
   const sleevePath = (dir: number) => {
     const topX = CX + dir * (SH + 2);
-    const endY = SHOULDER_Y + (FLOOR_Y - SHOULDER_Y) * sleeveLen * 0.62;
-    const capOut = 26 * s * (design.dress.sleeve === "Puff" || design.dress.sleeve === "Juliet" ? 1.5 : 1);
+    const endY = sleeveEndY;
+    const capOut = 26 * s * (sleeveName === "Puff" || sleeveName === "Juliet" ? 1.5 : 1);
     const endHW = 24 * s * sleeveFlare;
     return `
       M ${topX} ${SHOULDER_Y - 4}
@@ -521,11 +550,14 @@ export function GarmentPreview({ design }: { design: DesignState }) {
   };
 
   const cuffs = (dir: number) => {
-    if (design.category === "dress") return null;
-    const y = HIP_Y + 56;
-    const x = CX + dir * (SH + 6);
+    if (design.category === "dress" || sleeveless) return null;
     const spec = CUFF_SPEC[design.shirt.cuff] ?? CUFF_SPEC["Barrel"]!;
-    const left = x - dir * 16 - (dir > 0 ? 0 : spec.w);
+    // the cuff finishes the sleeve, so it is anchored to where the sleeve ends
+    const y = sleeveEndY - spec.h + 3;
+    if (armCut(dir) < y + spec.h) return null;
+    const endHW = 24 * s * sleeveFlare;
+    const x = CX + dir * (SH + 2 + endHW * 0.5);
+    const left = x - dir * 4 - spec.w / 2;
     return (
       <g>
         {spec.slant ? (
