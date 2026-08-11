@@ -278,7 +278,104 @@ export const PANT_HEMS = list(
   "Stirrup",
 );
 
+export const SHIRT_SLEEVES = list(
+  "Sleeveless",
+  "Cap",
+  "Short",
+  "Three-quarter",
+  "Long",
+);
+
+export type DisabilityOption = {
+  id: string;
+  label: string;
+  description: string;
+  limb: "none" | "leg" | "arm";
+  /** how much of the limb is missing */
+  level: "none" | "above-knee" | "below-knee" | "full-arm" | "below-elbow";
+  sides: 0 | 1 | 2;
+};
+
+export const DISABILITIES: DisabilityOption[] = [
+  {
+    id: "none",
+    label: "None",
+    description: "No adaptive tailoring required.",
+    limb: "none",
+    level: "none",
+    sides: 0,
+  },
+  {
+    id: "unilateral-above-knee",
+    label: "Unilateral amputation — above knee",
+    description: "Loss of one leg above the knee joint.",
+    limb: "leg",
+    level: "above-knee",
+    sides: 1,
+  },
+  {
+    id: "unilateral-below-knee",
+    label: "Unilateral amputation — below knee",
+    description: "One foot and lower leg removed, knee preserved.",
+    limb: "leg",
+    level: "below-knee",
+    sides: 1,
+  },
+  {
+    id: "bilateral-above-knee",
+    label: "Bilateral amputation — above knee",
+    description: "Loss of both legs above the knee; affects balance and trunk stability.",
+    limb: "leg",
+    level: "above-knee",
+    sides: 2,
+  },
+  {
+    id: "bilateral-below-knee",
+    label: "Bilateral amputation — below knee",
+    description: "Both feet and lower legs removed, both knees preserved.",
+    limb: "leg",
+    level: "below-knee",
+    sides: 2,
+  },
+  {
+    id: "unilateral-arm",
+    label: "Unilateral arm loss",
+    description: "Loss of one arm; restricts two-handed coordination.",
+    limb: "arm",
+    level: "full-arm",
+    sides: 1,
+  },
+  {
+    id: "bilateral-arm",
+    label: "Bilateral arm loss",
+    description: "Loss of both arms; needs alternative fastenings.",
+    limb: "arm",
+    level: "full-arm",
+    sides: 2,
+  },
+  {
+    id: "unilateral-below-elbow",
+    label: "Below-elbow amputation — one side",
+    description: "One hand and forearm removed below the elbow.",
+    limb: "arm",
+    level: "below-elbow",
+    sides: 1,
+  },
+  {
+    id: "bilateral-below-elbow",
+    label: "Below-elbow amputation — both sides",
+    description: "Both hands and forearms removed below the elbow.",
+    limb: "arm",
+    level: "below-elbow",
+    sides: 2,
+  },
+];
+
+export const disabilityFor = (id: string): DisabilityOption =>
+  DISABILITIES.find((d) => d.id === id) ?? DISABILITIES[0]!;
+
 export const LAPELS = list(
+
   "Notch",
   "Peak",
   "Shawl",
