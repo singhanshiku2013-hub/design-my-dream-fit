@@ -828,6 +828,55 @@ export function GarmentPreview({ design }: { design: DesignState }) {
     );
   };
 
+  /** Rounded caps where a limb (or its garment) ends. */
+  const stumps = (layer: "skin" | "pants") => {
+    if (dis.limb === "none") return null;
+    if (layer === "pants" && (dis.limb !== "leg" || design.category === "dress")) return null;
+    if (layer === "skin" && dis.limb === "leg" && design.category !== "dress") {
+      // the trouser cap covers it
+      if (dis.level === "above-knee" || dis.level === "below-knee") return null;
+    }
+    const dirs: number[] = dis.sides === 2 ? [-1, 1] : [back ? -1 : 1];
+    return (
+      <g>
+        {dirs.map((dir) => {
+          if (dis.limb === "leg") {
+            const y = legCut(dir);
+            const near = dis.level === "above-knee";
+            const cx = CX + dir * (HH * (near ? 0.55 : 0.42));
+            const rx = (near ? 30 : 22) * s;
+            return (
+              <ellipse
+                key={`l${dir}`}
+                cx={cx}
+                cy={y - 2}
+                rx={rx}
+                ry={rx * 0.42}
+                fill={layer === "pants" ? design.pants.color : skinShade}
+                stroke="rgba(0,0,0,.18)"
+              />
+            );
+          }
+          const y = armCut(dir);
+          const full = dis.level === "full-arm";
+          const cx = CX + dir * (SH + (full ? 2 : 10));
+          const rx = (full ? 20 : 13) * s;
+          return (
+            <ellipse
+              key={`a${dir}`}
+              cx={cx}
+              cy={y - 2}
+              rx={rx}
+              ry={rx * 0.5}
+              fill={skinShade}
+              stroke="rgba(0,0,0,.16)"
+            />
+          );
+        })}
+      </g>
+    );
+  };
+
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
@@ -844,6 +893,14 @@ export function GarmentPreview({ design }: { design: DesignState }) {
             secondary={design.pattern.secondary}
           />
         ) : null}
+        {pantsPatternId ? (
+          <PatternDef
+            id={pantsPatternId}
+            name={design.pantsPattern.name}
+            primary={design.pantsPattern.primary}
+            secondary={design.pantsPattern.secondary}
+          />
+        ) : null}
         <linearGradient id="dmd-sheen" x1="0" y1="0" x2="1" y2="0.4">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.05" />
           <stop offset="35%" stopColor="#ffffff" stopOpacity="0.95" />
@@ -856,6 +913,14 @@ export function GarmentPreview({ design }: { design: DesignState }) {
           <stop offset="75%" stopColor="#000000" stopOpacity="0" />
           <stop offset="100%" stopColor="#000000" stopOpacity="0.3" />
         </linearGradient>
+        <clipPath id={legsClip}>
+          <rect x={0} y={0} width={CX} height={legCut(-1)} />
+          <rect x={CX} y={0} width={W - CX} height={legCut(1)} />
+        </clipPath>
+        <clipPath id={armsClip}>
+          <rect x={0} y={0} width={CX} height={armCut(-1)} />
+          <rect x={CX} y={0} width={W - CX} height={armCut(1)} />
+        </clipPath>
         <radialGradient id="dmd-floor" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0%" stopColor="#000000" stopOpacity="0.18" />
           <stop offset="100%" stopColor="#000000" stopOpacity="0" />
@@ -866,11 +931,16 @@ export function GarmentPreview({ design }: { design: DesignState }) {
 
       {/* body */}
       <g>
-        <path d={leg(-1)} fill={skin} />
-        <path d={leg(1)} fill={skinShade} />
+        <g clipPath={`url(#${legsClip})`}>
+          <path d={leg(-1)} fill={skin} />
+          <path d={leg(1)} fill={skinShade} />
+        </g>
         <path d={torso} fill={skin} />
-        <path d={arm(-1)} fill={skin} />
-        <path d={arm(1)} fill={skinShade} />
+        <g clipPath={`url(#${armsClip})`}>
+          <path d={arm(-1)} fill={skin} />
+          <path d={arm(1)} fill={skinShade} />
+        </g>
+        {stumps("skin")}
         <rect x={CX - 13 * s} y={94} width={26 * s} height={34} fill={skinShade} />
         <circle cx={CX} cy={64} r={30 * s} fill={skin} />
         {back ? (
@@ -893,8 +963,12 @@ export function GarmentPreview({ design }: { design: DesignState }) {
           <Piece d={skirtPath} color={design.dress.color} patternId={patternId} sheen={sheen} />
           {skirtDetails()}
           <Piece d={bodice(waistY + 2, WH)} color={design.dress.color} patternId={patternId} sheen={sheen} />
-          <Piece d={sleevePath(-1)} color={design.dress.color} patternId={patternId} sheen={sheen} />
-          <Piece d={sleevePath(1)} color={design.dress.color} patternId={patternId} sheen={sheen} />
+          {sleeveless ? null : (
+            <g clipPath={`url(#${armsClip})`}>
+              <Piece d={sleevePath(-1)} color={design.dress.color} patternId={patternId} sheen={sheen} />
+              <Piece d={sleevePath(1)} color={design.dress.color} patternId={patternId} sheen={sheen} />
+            </g>
+          )}
           {waistDetail()}
           {!back ? <path d={necklinePath()} fill={skin} /> : null}
           {collarShape()}
@@ -902,9 +976,12 @@ export function GarmentPreview({ design }: { design: DesignState }) {
         </g>
       ) : (
         <g>
-          <Piece d={pantLeg(-1)} color={design.pants.color} patternId={patternId} sheen={sheen} />
-          <Piece d={pantLeg(1)} color={design.pants.color} patternId={patternId} sheen={sheen} />
-          {pantHemDetail()}
+          <g clipPath={`url(#${legsClip})`}>
+            <Piece d={pantLeg(-1)} color={design.pants.color} patternId={pantsPatternId} sheen={sheen} />
+            <Piece d={pantLeg(1)} color={design.pants.color} patternId={pantsPatternId} sheen={sheen} />
+            {pantHemDetail()}
+          </g>
+          {stumps("pants")}
           {waistbandDetail()}
           <Piece
             d={shirtPath}
@@ -914,10 +991,14 @@ export function GarmentPreview({ design }: { design: DesignState }) {
           />
           {/* fly / drawstring paint after the shirt so they are never buried */}
           {flyDetail()}
-          <Piece d={sleevePath(-1)} color={design.shirt.color} sheen={sheen} />
-          <Piece d={sleevePath(1)} color={design.shirt.color} sheen={sheen} />
-          {cuffs(-1)}
-          {cuffs(1)}
+          {sleeveless ? null : (
+            <g clipPath={`url(#${armsClip})`}>
+              <Piece d={sleevePath(-1)} color={design.shirt.color} sheen={sheen} />
+              <Piece d={sleevePath(1)} color={design.shirt.color} sheen={sheen} />
+              {cuffs(-1)}
+              {cuffs(1)}
+            </g>
+          )}
           {plackets()}
           {design.category === "suit" && design.jacket.enabled ? (
             <g>
