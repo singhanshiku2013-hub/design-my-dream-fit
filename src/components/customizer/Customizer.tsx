@@ -9,6 +9,7 @@ import { useStore, type DeepPartial } from "@/lib/design/store";
 import {
   BREAST_POCKETS,
   CUFFS,
+  DISABILITIES,
   DRESS_COLLARS,
   FABRICS,
   FLIES,
@@ -19,6 +20,7 @@ import {
   PATTERN_GROUPS,
   PLACKETS,
   SHIRT_COLLARS,
+  SHIRT_SLEEVES,
   SIZES,
   SKIRTS,
   SLEEVES,
@@ -177,6 +179,34 @@ export function Customizer({ gender }: { gender: Gender }) {
           </div>
         </Section>
 
+        <Section title="Adaptive fit">
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Choose a limb difference and the live preview, garment length and
+              sleeve construction adapt to it.
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {DISABILITIES.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => set({ disability: d.id })}
+                  aria-pressed={design.disability === d.id}
+                  className={cn(
+                    "rounded-xl border p-3 text-left transition-all",
+                    design.disability === d.id
+                      ? "border-primary bg-secondary shadow-soft"
+                      : "border-border bg-background hover:border-primary/50",
+                  )}
+                >
+                  <p className="text-sm font-medium">{d.label}</p>
+                  <p className="text-xs text-muted-foreground">{d.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </Section>
+
         <Section title="Size">
           <OptionRow
             label="Measurement"
@@ -220,6 +250,7 @@ export function Customizer({ gender }: { gender: Gender }) {
             <Section title={gender === "female" ? "Shirt construction" : "Shirt"}>
               <div className="space-y-4">
                 <OptionRow label="Collar" options={SHIRT_COLLARS} value={design.shirt.collar} onChange={(v) => set({ shirt: { collar: v } })} />
+                <OptionRow label="Sleeve length" options={SHIRT_SLEEVES} value={design.shirt.sleeve} onChange={(v) => set({ shirt: { sleeve: v } })} hint="Cuffs follow the sleeve end" />
                 <OptionRow label="Cuffs" options={CUFFS} value={design.shirt.cuff} onChange={(v) => set({ shirt: { cuff: v } })} />
                 <OptionRow label="Placket" options={PLACKETS} value={design.shirt.placket} onChange={(v) => set({ shirt: { placket: v } })} />
                 <OptionRow label="Yoke" options={YOKES} value={design.shirt.yoke} onChange={(v) => set({ shirt: { yoke: v }, view: "back" })} hint="Back-view detail — preview flips automatically" />
@@ -273,7 +304,7 @@ export function Customizer({ gender }: { gender: Gender }) {
           </div>
         </Section>
 
-        <Section title="Pattern library">
+        <Section title={isDress ? "Pattern library" : "Pattern — top"}>
           <div className="space-y-4">
             {PATTERN_GROUPS.map((g) => (
               <OptionRow
@@ -290,6 +321,29 @@ export function Customizer({ gender }: { gender: Gender }) {
             </div>
           </div>
         </Section>
+
+        {isDress ? null : (
+          <Section title="Pattern — bottoms">
+            <div className="space-y-4">
+              <p className="text-xs text-muted-foreground">
+                Patterned separately from the top, so you can print only one half.
+              </p>
+              {PATTERN_GROUPS.map((g) => (
+                <OptionRow
+                  key={g.group}
+                  label={g.group}
+                  options={g.patterns}
+                  value={design.pantsPattern.name}
+                  onChange={(v) => set({ pantsPattern: { name: v } })}
+                />
+              ))}
+              <div className="grid gap-2 sm:grid-cols-2">
+                <ColorField label="Bottoms pattern primary" value={design.pantsPattern.primary} onChange={(v) => set({ pantsPattern: { primary: v } })} />
+                <ColorField label="Bottoms pattern secondary" value={design.pantsPattern.secondary} onChange={(v) => set({ pantsPattern: { secondary: v } })} />
+              </div>
+            </div>
+          </Section>
+        )}
       </div>
 
       {/* ---------- AI stylist ---------- */}
