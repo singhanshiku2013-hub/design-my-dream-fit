@@ -296,6 +296,7 @@ export function GarmentPreview({ design }: { design: DesignState }) {
   const collarShape = () => {
     const y = SHOULDER_Y - 8;
     const name = design.category === "dress" ? design.dress.collar : design.shirt.collar;
+    if (name === "None") return null;
     switch (name) {
       case "Turtle":
       case "Mandarin":
