@@ -3,7 +3,7 @@ import { CheckCircle2, Clock } from "lucide-react";
 import { PageShell, Quote } from "@/components/site/SiteNav";
 import { GarmentPreview } from "@/components/preview/GarmentPreview";
 import { useStore } from "@/lib/design/store";
-import { QUOTES, designSummary } from "@/lib/design/options";
+import { QUOTES, designSummary, formatMoney } from "@/lib/design/options";
 
 export const Route = createFileRoute("/order-confirmation")({
   head: () => ({
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/order-confirmation")({
 });
 
 function OrderConfirmation() {
-  const { order, hydrated, clearCart } = useStore();
+  const { order, hydrated, clearCart, currency } = useStore();
   const navigate = useNavigate();
 
   if (!hydrated) return <PageShell>{null}</PageShell>;

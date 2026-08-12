@@ -4,7 +4,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { PageShell } from "@/components/site/SiteNav";
 import { useStore, type Customer } from "@/lib/design/store";
-import { SIZES, type Size } from "@/lib/design/options";
+import { SIZES, formatMoney, type Size } from "@/lib/design/options";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/checkout")({
@@ -36,7 +36,7 @@ const schema = z.object({
 const PAYMENTS: Customer["payment"][] = ["Cash on Delivery", "Card", "Online Payment"];
 
 function CheckoutPage() {
-  const { cart, subtotal, placeOrder, updateCartItemSize, hydrated } = useStore();
+  const { cart, subtotal, placeOrder, updateCartItemSize, hydrated, currency } = useStore();
   const navigate = useNavigate();
   const [form, setForm] = useState<Customer>({
     name: "",
