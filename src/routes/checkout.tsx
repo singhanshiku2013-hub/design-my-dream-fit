@@ -163,7 +163,7 @@ function CheckoutPage() {
                 <div key={item.id} className="space-y-1.5 border-b border-border pb-3 last:border-0">
                   <div className="flex justify-between gap-3 text-sm">
                     <span>{item.title}</span>
-                    <span className="tabular-nums">${item.price * item.qty}</span>
+                    <span className="tabular-nums">{formatMoney(item.price * item.qty, currency)}</span>
                   </div>
                   <label className="flex items-center gap-2 text-xs text-muted-foreground">
                     Selected size
@@ -185,7 +185,7 @@ function CheckoutPage() {
             </div>
             <div className="flex justify-between border-t border-border pt-3 font-display text-2xl">
               <span>Total</span>
-              <span className="tabular-nums">${subtotal}</span>
+              <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
             </div>
             <button
               type="submit"
