@@ -7,12 +7,15 @@ export function OptionRow({
   value,
   onChange,
   hint,
+  labels,
 }: {
   label: string;
   options: readonly string[];
   value: string;
   onChange: (v: string) => void;
   hint?: string;
+  /** Optional display labels keyed by option value. */
+  labels?: Record<string, string>;
 }) {
   return (
     <div className="space-y-2">
@@ -34,7 +37,7 @@ export function OptionRow({
                 : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground",
             )}
           >
-            {o}
+            {labels?.[o] ?? o}
           </button>
         ))}
       </div>
