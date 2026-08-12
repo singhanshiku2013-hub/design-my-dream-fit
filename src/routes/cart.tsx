@@ -3,7 +3,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { PageShell, Quote } from "@/components/site/SiteNav";
 import { GarmentPreview } from "@/components/preview/GarmentPreview";
 import { useStore } from "@/lib/design/store";
-import { QUOTES, designSummary } from "@/lib/design/options";
+import { QUOTES, designSummary, formatMoney } from "@/lib/design/options";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/cart")({
 });
 
 function CartPage() {
-  const { cart, removeFromCart, setQty, subtotal, clearCart, hydrated } = useStore();
+  const { cart, removeFromCart, setQty, subtotal, clearCart, hydrated, currency } = useStore();
   const navigate = useNavigate();
 
   if (!hydrated) {
@@ -109,7 +109,7 @@ function CartPage() {
                     >
                       <Trash2 className="size-3.5" aria-hidden /> Remove
                     </button>
-                    <span className="ml-auto font-display text-lg">${item.price * item.qty}</span>
+                    <span className="ml-auto font-display text-lg">{formatMoney(item.price * item.qty, currency)}</span>
                   </div>
                 </div>
               </article>
@@ -127,7 +127,7 @@ function CartPage() {
             <h2 className="font-display text-xl">Summary</h2>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
-              <span className="tabular-nums">${subtotal}</span>
+              <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Atelier making & delivery</span>
@@ -135,7 +135,7 @@ function CartPage() {
             </div>
             <div className="flex justify-between border-t border-border pt-3 font-display text-2xl">
               <span>Total</span>
-              <span className="tabular-nums">${subtotal}</span>
+              <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
             </div>
             <button
               type="button"

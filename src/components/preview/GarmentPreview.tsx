@@ -5,6 +5,7 @@ import {
   SIZE_SCALE,
   bodyShapesFor,
   disabilityFor,
+  pantLengthFor,
   type DesignState,
 } from "@/lib/design/options";
 
@@ -57,15 +58,15 @@ const SLEEVE_LEN: Record<string, number> = {
   Cap: 0.1,
   Short: 0.22,
   "Three-quarter": 0.42,
-  Long: 0.58,
-  Bell: 0.55,
+  Long: 0.855,
+  Bell: 0.82,
   Puff: 0.24,
-  Bishop: 0.56,
-  Raglan: 0.5,
+  Bishop: 0.855,
+  Raglan: 0.7,
   Kimono: 0.3,
   Butterfly: 0.34,
-  Juliet: 0.56,
-  Lantern: 0.4,
+  Juliet: 0.855,
+  Lantern: 0.6,
 };
 
 const SLEEVE_FLARE: Record<string, number> = {
@@ -295,6 +296,7 @@ export function GarmentPreview({ design }: { design: DesignState }) {
   const collarShape = () => {
     const y = SHOULDER_Y - 8;
     const name = design.category === "dress" ? design.dress.collar : design.shirt.collar;
+    if (name === "None") return null;
     switch (name) {
       case "Turtle":
       case "Mandarin":
@@ -340,7 +342,7 @@ export function GarmentPreview({ design }: { design: DesignState }) {
   const shirtBottom = HIP_Y + 26;
   const shirtPath = bodice(shirtBottom, HH * 0.96, waistY, WH * 1.06);
   const pantsTopY = design.pants.waistband === "High-rise" ? waistY - 10 : HIP_Y - 40;
-  const pantHemY =
+  const hemBaseY =
     design.pants.hem === "Elastic-jogger"
       ? FLOOR_Y - 34
       : design.pants.hem === "Stirrup"
@@ -348,6 +350,12 @@ export function GarmentPreview({ design }: { design: DesignState }) {
         : design.pants.hem === "Raw-edge"
           ? FLOOR_Y - 20
           : FLOOR_Y - 12;
+  // Inseam length: 32" is the drafted reference; shorter inseams lift the hem.
+  const inseam = pantLengthFor(design.pants.length).inches;
+  const pantHemY = Math.max(
+    pantsTopY + 90,
+    hemBaseY - (32 - inseam) * 17,
+  );
   const PANT_HEM_WIDTH: Record<string, number> = {
     Straight: 34,
     "Turned-up": 34,

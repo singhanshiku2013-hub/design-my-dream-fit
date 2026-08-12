@@ -4,7 +4,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { PageShell } from "@/components/site/SiteNav";
 import { useStore, type Customer } from "@/lib/design/store";
-import { SIZES, type Size } from "@/lib/design/options";
+import { SIZES, formatMoney, type Size } from "@/lib/design/options";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/checkout")({
@@ -36,7 +36,7 @@ const schema = z.object({
 const PAYMENTS: Customer["payment"][] = ["Cash on Delivery", "Card", "Online Payment"];
 
 function CheckoutPage() {
-  const { cart, subtotal, placeOrder, updateCartItemSize, hydrated } = useStore();
+  const { cart, subtotal, placeOrder, updateCartItemSize, hydrated, currency } = useStore();
   const navigate = useNavigate();
   const [form, setForm] = useState<Customer>({
     name: "",
@@ -163,7 +163,7 @@ function CheckoutPage() {
                 <div key={item.id} className="space-y-1.5 border-b border-border pb-3 last:border-0">
                   <div className="flex justify-between gap-3 text-sm">
                     <span>{item.title}</span>
-                    <span className="tabular-nums">${item.price * item.qty}</span>
+                    <span className="tabular-nums">{formatMoney(item.price * item.qty, currency)}</span>
                   </div>
                   <label className="flex items-center gap-2 text-xs text-muted-foreground">
                     Selected size
@@ -185,7 +185,7 @@ function CheckoutPage() {
             </div>
             <div className="flex justify-between border-t border-border pt-3 font-display text-2xl">
               <span>Total</span>
-              <span className="tabular-nums">${subtotal}</span>
+              <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
             </div>
             <button
               type="submit"

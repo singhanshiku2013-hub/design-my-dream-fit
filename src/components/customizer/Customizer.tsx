@@ -29,8 +29,10 @@ import {
   WAISTLINES,
   YOKES,
   bodyShapesFor,
+  PANT_LENGTHS,
   designPrice,
   designTitle,
+  formatMoney,
   presetsFor,
   type DesignState,
   type Gender,
@@ -48,7 +50,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function Customizer({ gender }: { gender: Gender }) {
-  const { designs, updateDesign, resetDesign, addToCart } = useStore();
+  const { designs, updateDesign, resetDesign, addToCart, currency } = useStore();
   const design = designs[gender];
   const set = (patch: DeepPartial<DesignState>) => updateDesign(gender, patch);
   const shapes = bodyShapesFor(gender);
@@ -102,7 +104,10 @@ export function Customizer({ gender }: { gender: Gender }) {
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-3">
             <div>
               <p className="eyebrow">Atelier price</p>
-              <p className="font-display text-2xl">${price}</p>
+              <p className="font-display text-2xl">{formatMoney(price, currency)}</p>
+              {currency === "INR" ? (
+                <p className="text-[0.7rem] text-muted-foreground">approx. from {formatMoney(price)}</p>
+              ) : null}
             </div>
             <div className="flex gap-2">
               <button
@@ -263,6 +268,16 @@ export function Customizer({ gender }: { gender: Gender }) {
                 <OptionRow label="Waistband" options={WAISTBANDS} value={design.pants.waistband} onChange={(v) => set({ pants: { waistband: v } })} />
                 <OptionRow label="Fly" options={FLIES} value={design.pants.fly} onChange={(v) => set({ pants: { fly: v } })} />
                 <OptionRow label="Cuff / hem" options={PANT_HEMS} value={design.pants.hem} onChange={(v) => set({ pants: { hem: v } })} />
+                <OptionRow
+                  label="Inseam length"
+                  options={PANT_LENGTHS.map((l) => l.id)}
+                  labels={PANT_LENGTHS.reduce<Record<string, string>>((acc, l) => {
+                    acc[l.id] = l.label;
+                    return acc;
+                  }, {})}
+                  value={design.pants.length}
+                  onChange={(v) => set({ pants: { length: v } })}
+                />
                 <ColorField label="Bottoms color" value={design.pants.color} onChange={(v) => set({ pants: { color: v } })} />
               </div>
             </Section>

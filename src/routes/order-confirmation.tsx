@@ -3,7 +3,7 @@ import { CheckCircle2, Clock } from "lucide-react";
 import { PageShell, Quote } from "@/components/site/SiteNav";
 import { GarmentPreview } from "@/components/preview/GarmentPreview";
 import { useStore } from "@/lib/design/store";
-import { QUOTES, designSummary } from "@/lib/design/options";
+import { QUOTES, designSummary, formatMoney } from "@/lib/design/options";
 
 export const Route = createFileRoute("/order-confirmation")({
   head: () => ({
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/order-confirmation")({
 });
 
 function OrderConfirmation() {
-  const { order, hydrated, clearCart } = useStore();
+  const { order, hydrated, clearCart, currency } = useStore();
   const navigate = useNavigate();
 
   if (!hydrated) return <PageShell>{null}</PageShell>;
@@ -68,7 +68,7 @@ function OrderConfirmation() {
               <div className="min-w-[220px] flex-1 space-y-2">
                 <h2 className="font-display text-xl">{item.title}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Quantity {item.qty} · ${item.price * item.qty}
+                  Quantity {item.qty} · {formatMoney(item.price * item.qty, currency)}
                 </p>
                 <dl className="grid grid-cols-1 gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
                   {designSummary(item.design).map((r) => (
@@ -102,7 +102,7 @@ function OrderConfirmation() {
           </div>
           <div className="flex justify-between border-t border-border pt-4 font-display text-2xl">
             <span>Total</span>
-            <span className="tabular-nums">${order.total}</span>
+            <span className="tabular-nums">{formatMoney(order.total, currency)}</span>
           </div>
           <button
             type="button"

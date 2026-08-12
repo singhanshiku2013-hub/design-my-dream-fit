@@ -159,6 +159,7 @@ export const SLEEVES = list(
 );
 
 export const DRESS_COLLARS = list(
+  "None",
   "Peter Pan",
   "Mandarin",
   "Sailor",
@@ -207,6 +208,7 @@ export const HEMLINES = list(
 );
 
 export const SHIRT_COLLARS = list(
+  "None",
   "Straight",
   "Button-down",
   "Mandarin",
@@ -285,6 +287,25 @@ export const SHIRT_SLEEVES = list(
   "Three-quarter",
   "Long",
 );
+
+export type PantLength = {
+  id: string;
+  label: string;
+  inches: number;
+};
+
+/** Inseam options for the lower garment (both genders). */
+export const PANT_LENGTHS: PantLength[] = [
+  { id: "26", label: '26" (66 cm)', inches: 26 },
+  { id: "28", label: '28" (71 cm)', inches: 28 },
+  { id: "30", label: '30" (76 cm)', inches: 30 },
+  { id: "32", label: '32" (81 cm)', inches: 32 },
+  { id: "34", label: '34" (86 cm)', inches: 34 },
+  { id: "36", label: '36" (91 cm)', inches: 36 },
+];
+
+export const pantLengthFor = (id: string): PantLength =>
+  PANT_LENGTHS.find((l) => l.id === id) ?? PANT_LENGTHS[3]!;
 
 export type DisabilityOption = {
   id: string;
@@ -451,9 +472,9 @@ export const ALL_PATTERNS = PATTERN_GROUPS.flatMap((g) => g.patterns);
 
 export const FABRICS = [
   { id: "Cotton", note: "Breathable, matte, everyday luxury.", sheen: 0.06, price: 0 },
-  { id: "Silk", note: "Fluid drape with a soft liquid glow.", sheen: 0.3, price: 90 },
-  { id: "Chiffon", note: "Airy, translucent, weightless movement.", sheen: 0.14, price: 60 },
-  { id: "Satin", note: "High-shine finish for evening statements.", sheen: 0.42, price: 75 },
+  { id: "Silk", note: "Fluid drape with a soft liquid glow.", sheen: 0.3, price: 7 },
+  { id: "Chiffon", note: "Airy, translucent, weightless movement.", sheen: 0.14, price: 4 },
+  { id: "Satin", note: "High-shine finish for evening statements.", sheen: 0.42, price: 6 },
 ] as const;
 export type Fabric = (typeof FABRICS)[number]["id"];
 
@@ -496,6 +517,8 @@ export type DesignState = {
     waistband: string;
     fly: string;
     hem: string;
+    /** Inseam length id, see PANT_LENGTHS. */
+    length: string;
     color: string;
   };
   jacket: {
@@ -548,6 +571,7 @@ export const defaultDesign = (gender: Gender): DesignState => ({
     waistband: "Standard",
     fly: "Zipper",
     hem: "Straight",
+    length: "32",
     color: "#4A5568",
   },
   jacket: {
@@ -625,7 +649,7 @@ export const FEMALE_PRESETS: Preset[] = [
         yoke: "Split",
         color: "#F1E3E8",
       },
-      pants: { waistband: "High-rise", fly: "Zipper", hem: "Turned-up", color: "#5B6472" },
+      pants: { waistband: "High-rise", fly: "Zipper", hem: "Turned-up", length: "32", color: "#5B6472" },
       pattern: { name: "Pinstripe", primary: "#8A93A5", secondary: "#F5F5F5" },
     },
   },
@@ -659,7 +683,7 @@ export const MALE_PRESETS: Preset[] = [
       category: "suit",
       fabric: "Satin",
       shirt: { sleeve: "Long", collar: "Wingtip", cuff: "French", placket: "Tuxedo", yoke: "Split", color: "#FBF7F2" },
-      pants: { waistband: "Side-tab", fly: "Button", hem: "Straight", color: "#20242F" },
+      pants: { waistband: "Side-tab", fly: "Button", hem: "Straight", length: "32", color: "#20242F" },
       jacket: { enabled: true, lapel: "Peak", vent: "Double", pocket: "Jetted", color: "#20242F" },
       pattern: { name: "None", primary: "#C9A227", secondary: "#FFFFFF" },
     },
@@ -672,7 +696,7 @@ export const MALE_PRESETS: Preset[] = [
       category: "suit",
       fabric: "Cotton",
       shirt: { sleeve: "Long", collar: "Spread", cuff: "Barrel", placket: "Conventional", yoke: "One-piece", color: "#DCE6F0" },
-      pants: { waistband: "Extended", fly: "Zipper", hem: "Turned-up", color: "#39435A" },
+      pants: { waistband: "Extended", fly: "Zipper", hem: "Turned-up", length: "32", color: "#39435A" },
       jacket: { enabled: true, lapel: "Notch", vent: "Single", pocket: "Welt", color: "#39435A" },
       pattern: { name: "Chalkstripe", primary: "#96A2BA", secondary: "#39435A" },
     },
@@ -685,7 +709,7 @@ export const MALE_PRESETS: Preset[] = [
       category: "separates",
       fabric: "Cotton",
       shirt: { sleeve: "Long", collar: "Camp", cuff: "Rounded", placket: "Popover", yoke: "Ventilated", color: "#F4D7DA" },
-      pants: { waistband: "Drawstring", fly: "Button", hem: "Raw-edge", color: "#E8DFC9" },
+      pants: { waistband: "Drawstring", fly: "Button", hem: "Raw-edge", length: "32", color: "#E8DFC9" },
       jacket: { enabled: false, lapel: "Notch", vent: "No-vent", pocket: "Patch", color: "#E8DFC9" },
       pattern: { name: "Awning", primary: "#D98BA0", secondary: "#FBF7F2" },
     },
@@ -698,7 +722,7 @@ export const MALE_PRESETS: Preset[] = [
       category: "separates",
       fabric: "Silk",
       shirt: { sleeve: "Long", collar: "Mandarin", cuff: "Gauntlet", placket: "Zipper", yoke: "Bi-swing", color: "#2F3440" },
-      pants: { waistband: "Elastic", fly: "Zipper", hem: "Elastic-jogger", color: "#3F4654" },
+      pants: { waistband: "Elastic", fly: "Zipper", hem: "Elastic-jogger", length: "32", color: "#3F4654" },
       jacket: { enabled: false, lapel: "Mao", vent: "Action-back", pocket: "Hidden-zipper", color: "#2F3440" },
       pattern: { name: "Camo", primary: "#5C6B4E", secondary: "#2F3440" },
     },
@@ -717,12 +741,33 @@ export const QUOTES = [
 ];
 
 export function designPrice(d: DesignState): number {
-  const base = d.category === "suit" ? 640 : d.category === "dress" ? 420 : 380;
+  // Affordable atelier pricing: every finished design lands between $20 and $50.
+  const base = d.category === "suit" ? 34 : d.category === "dress" ? 26 : 22;
   const fabric = FABRICS.find((f) => f.id === d.fabric)?.price ?? 0;
-  const pattern = (d.pattern.name === "None" ? 0 : 45) +
-    (d.category !== "dress" && d.pantsPattern.name !== "None" ? 35 : 0);
-  const jacket = d.category === "suit" && d.jacket.enabled ? 0 : 0;
-  return base + fabric + pattern + jacket;
+  const pattern =
+    (d.pattern.name === "None" ? 0 : 3) +
+    (d.category !== "dress" && d.pantsPattern.name !== "None" ? 2 : 0);
+  const jacket = d.category === "suit" && d.jacket.enabled ? 2 : 0;
+  const size = ["XXL", "XXXL"].includes(d.size) ? 1 : 0;
+  return Math.min(50, Math.max(20, base + fabric + pattern + jacket + size));
+}
+
+export type Currency = "USD" | "INR";
+
+/** Indicative conversion rate used for the approximate rupee display. */
+export const USD_TO_INR = 88;
+
+export const CURRENCY_LABEL: Record<Currency, string> = {
+  USD: "USD ($)",
+  INR: "INR (₹)",
+};
+
+/** Formats a USD amount in the chosen currency (rupees are approximate). */
+export function formatMoney(usd: number, currency: Currency = "USD"): string {
+  if (currency === "INR") {
+    return `₹${Math.round(usd * USD_TO_INR).toLocaleString("en-IN")}`;
+  }
+  return `$${usd.toLocaleString("en-US")}`;
 }
 
 export function designTitle(d: DesignState): string {
@@ -767,6 +812,7 @@ export function designSummary(d: DesignState): { label: string; value: string }[
       { label: "Waistband", value: d.pants.waistband },
       { label: "Fly", value: d.pants.fly },
       { label: "Bottom hem", value: d.pants.hem },
+      { label: "Inseam length", value: pantLengthFor(d.pants.length).label },
       { label: "Bottom color", value: d.pants.color },
       { label: "Bottoms pattern", value: d.pantsPattern.name },
     );

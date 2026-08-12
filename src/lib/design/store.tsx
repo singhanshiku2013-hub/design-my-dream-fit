@@ -11,6 +11,7 @@ import {
   defaultDesign,
   designPrice,
   designTitle,
+  type Currency,
   type DesignState,
   type Gender,
   type Size,
@@ -56,6 +57,8 @@ type Store = {
   clearCart: () => void;
   placeOrder: (customer: Customer) => Order;
   subtotal: number;
+  currency: Currency;
+  setCurrency: (c: Currency) => void;
 };
 
 export type DeepPartial<T> = {
@@ -88,6 +91,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [currency, setCurrency] = useState<Currency>("USD");
 
   useEffect(() => {
     try {
@@ -99,6 +103,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           cart: CartItem[];
           orders: Order[];
           order: Order | null;
+          currency: Currency;
         }>;
         if (parsed.designs) {
           setDesigns({
@@ -109,6 +114,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (parsed.cart) setCart(parsed.cart);
         if (parsed.orders?.length) setOrders(parsed.orders);
         else if (parsed.order) setOrders([parsed.order]);
+        if (parsed.currency === "INR" || parsed.currency === "USD") setCurrency(parsed.currency);
       }
     } catch {
       /* ignore corrupt storage */
@@ -119,11 +125,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(KEY, JSON.stringify({ designs, cart, orders }));
+      window.localStorage.setItem(KEY, JSON.stringify({ designs, cart, orders, currency }));
     } catch {
       /* storage full or unavailable */
     }
-  }, [hydrated, designs, cart, orders]);
+  }, [hydrated, designs, cart, orders, currency]);
 
   const updateDesign = useCallback((gender: Gender, patch: DeepPartial<DesignState>) => {
     setDesigns((prev) => ({ ...prev, [gender]: mergeDesign(prev[gender], patch) }));
@@ -202,6 +208,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       clearCart,
       placeOrder,
       subtotal,
+      currency,
+      setCurrency,
     }),
     [
       hydrated,
@@ -217,6 +225,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       clearCart,
       placeOrder,
       subtotal,
+      currency,
     ],
   );
 
