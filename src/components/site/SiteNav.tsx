@@ -13,6 +13,34 @@ const LINKS = [
   { to: "/thank-you", label: "Thank You" },
 ] as const;
 
+function CurrencyToggle() {
+  const { currency, setCurrency } = useStore();
+  return (
+    <div
+      className="order-2 flex shrink-0 rounded-full border border-border bg-background p-0.5 sm:order-3"
+      role="group"
+      aria-label="Display currency"
+    >
+      {(["USD", "INR"] as const).map((c) => (
+        <button
+          key={c}
+          type="button"
+          onClick={() => setCurrency(c)}
+          aria-pressed={currency === c}
+          className={cn(
+            "rounded-full px-2.5 py-1 text-[0.75rem] font-medium transition-colors",
+            currency === c
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          {c === "USD" ? "$ USD" : "₹ INR"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function SiteNav() {
   const { cart } = useStore();
   const count = cart.reduce((n, i) => n + i.qty, 0);
@@ -43,9 +71,13 @@ export function SiteNav() {
           ))}
         </nav>
 
+        <div className="order-2 ml-auto sm:order-3">
+          <CurrencyToggle />
+        </div>
+
         <Link
           to="/cart"
-          className="order-2 ml-auto inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm transition-colors hover:bg-secondary sm:order-3"
+          className="order-2 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm transition-colors hover:bg-secondary sm:order-3"
         >
           <ShoppingBag className="size-4" aria-hidden />
           <span className="tabular-nums">{count}</span>
