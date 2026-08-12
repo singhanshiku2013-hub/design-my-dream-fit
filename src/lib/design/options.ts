@@ -159,6 +159,7 @@ export const SLEEVES = list(
 );
 
 export const DRESS_COLLARS = list(
+  "None",
   "Peter Pan",
   "Mandarin",
   "Sailor",
@@ -207,6 +208,7 @@ export const HEMLINES = list(
 );
 
 export const SHIRT_COLLARS = list(
+  "None",
   "Straight",
   "Button-down",
   "Mandarin",
@@ -285,6 +287,25 @@ export const SHIRT_SLEEVES = list(
   "Three-quarter",
   "Long",
 );
+
+export type PantLength = {
+  id: string;
+  label: string;
+  inches: number;
+};
+
+/** Inseam options for the lower garment (both genders). */
+export const PANT_LENGTHS: PantLength[] = [
+  { id: "26", label: '26" (66 cm)', inches: 26 },
+  { id: "28", label: '28" (71 cm)', inches: 28 },
+  { id: "30", label: '30" (76 cm)', inches: 30 },
+  { id: "32", label: '32" (81 cm)', inches: 32 },
+  { id: "34", label: '34" (86 cm)', inches: 34 },
+  { id: "36", label: '36" (91 cm)', inches: 36 },
+];
+
+export const pantLengthFor = (id: string): PantLength =>
+  PANT_LENGTHS.find((l) => l.id === id) ?? PANT_LENGTHS[3]!;
 
 export type DisabilityOption = {
   id: string;
@@ -451,9 +472,9 @@ export const ALL_PATTERNS = PATTERN_GROUPS.flatMap((g) => g.patterns);
 
 export const FABRICS = [
   { id: "Cotton", note: "Breathable, matte, everyday luxury.", sheen: 0.06, price: 0 },
-  { id: "Silk", note: "Fluid drape with a soft liquid glow.", sheen: 0.3, price: 90 },
-  { id: "Chiffon", note: "Airy, translucent, weightless movement.", sheen: 0.14, price: 60 },
-  { id: "Satin", note: "High-shine finish for evening statements.", sheen: 0.42, price: 75 },
+  { id: "Silk", note: "Fluid drape with a soft liquid glow.", sheen: 0.3, price: 7 },
+  { id: "Chiffon", note: "Airy, translucent, weightless movement.", sheen: 0.14, price: 4 },
+  { id: "Satin", note: "High-shine finish for evening statements.", sheen: 0.42, price: 6 },
 ] as const;
 export type Fabric = (typeof FABRICS)[number]["id"];
 
@@ -496,6 +517,8 @@ export type DesignState = {
     waistband: string;
     fly: string;
     hem: string;
+    /** Inseam length id, see PANT_LENGTHS. */
+    length: string;
     color: string;
   };
   jacket: {
@@ -548,6 +571,7 @@ export const defaultDesign = (gender: Gender): DesignState => ({
     waistband: "Standard",
     fly: "Zipper",
     hem: "Straight",
+    length: "32",
     color: "#4A5568",
   },
   jacket: {
@@ -717,12 +741,33 @@ export const QUOTES = [
 ];
 
 export function designPrice(d: DesignState): number {
-  const base = d.category === "suit" ? 640 : d.category === "dress" ? 420 : 380;
+  // Affordable atelier pricing: every finished design lands between $20 and $50.
+  const base = d.category === "suit" ? 34 : d.category === "dress" ? 26 : 22;
   const fabric = FABRICS.find((f) => f.id === d.fabric)?.price ?? 0;
-  const pattern = (d.pattern.name === "None" ? 0 : 45) +
-    (d.category !== "dress" && d.pantsPattern.name !== "None" ? 35 : 0);
-  const jacket = d.category === "suit" && d.jacket.enabled ? 0 : 0;
-  return base + fabric + pattern + jacket;
+  const pattern =
+    (d.pattern.name === "None" ? 0 : 3) +
+    (d.category !== "dress" && d.pantsPattern.name !== "None" ? 2 : 0);
+  const jacket = d.category === "suit" && d.jacket.enabled ? 2 : 0;
+  const size = ["XXL", "XXXL"].includes(d.size) ? 1 : 0;
+  return Math.min(50, Math.max(20, base + fabric + pattern + jacket + size));
+}
+
+export type Currency = "USD" | "INR";
+
+/** Indicative conversion rate used for the approximate rupee display. */
+export const USD_TO_INR = 88;
+
+export const CURRENCY_LABEL: Record<Currency, string> = {
+  USD: "USD ($)",
+  INR: "INR (₹)",
+};
+
+/** Formats a USD amount in the chosen currency (rupees are approximate). */
+export function formatMoney(usd: number, currency: Currency = "USD"): string {
+  if (currency === "INR") {
+    return `₹${Math.round(usd * USD_TO_INR).toLocaleString("en-IN")}`;
+  }
+  return `$${usd.toLocaleString("en-US")}`;
 }
 
 export function designTitle(d: DesignState): string {
@@ -767,6 +812,7 @@ export function designSummary(d: DesignState): { label: string; value: string }[
       { label: "Waistband", value: d.pants.waistband },
       { label: "Fly", value: d.pants.fly },
       { label: "Bottom hem", value: d.pants.hem },
+      { label: "Inseam length", value: pantLengthFor(d.pants.length).label },
       { label: "Bottom color", value: d.pants.color },
       { label: "Bottoms pattern", value: d.pantsPattern.name },
     );
