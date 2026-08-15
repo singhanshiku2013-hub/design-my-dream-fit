@@ -118,7 +118,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [currency, setCurrency] = useState<Currency>("USD");
+  const [currency, setCurrency] = useState<Currency>("INR");
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>("domestic");
 
   useEffect(() => {
     try {
