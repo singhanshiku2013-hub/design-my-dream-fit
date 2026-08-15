@@ -3,7 +3,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { PageShell, Quote } from "@/components/site/SiteNav";
 import { GarmentPreview } from "@/components/preview/GarmentPreview";
 import { useStore } from "@/lib/design/store";
-import { QUOTES, designSummary, formatMoney } from "@/lib/design/options";
+import { CUSTOMS_NOTICE, QUOTES, designSummary, formatMoney } from "@/lib/design/options";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
