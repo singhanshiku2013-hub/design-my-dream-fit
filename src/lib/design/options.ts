@@ -741,7 +741,6 @@ export const QUOTES = [
   "Wear what makes you recognise yourself.",
 ];
 
-export function designPrice(d: DesignState): number {
 // ---------------------------------------------------------------------------
 // Pricing. Every figure below is a real INR amount — INR is the currency the
 // app actually computes and charges in. USD is display-only (see formatMoney).
