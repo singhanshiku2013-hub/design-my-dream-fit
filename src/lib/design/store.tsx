@@ -8,12 +8,17 @@ import {
   type ReactNode,
 } from "react";
 import {
+  calculateGST,
   defaultDesign,
   designPrice,
   designTitle,
+  gstRateFor,
+  priceBreakdown,
+  shippingFee,
   type Currency,
   type DesignState,
   type Gender,
+  type ShippingMethod,
   type Size,
 } from "./options";
 
@@ -38,6 +43,25 @@ export type Order = {
   placedAt: string;
   customer: Customer;
   items: CartItem[];
+  /** All amounts in INR. */
+  cost: number;
+  markup: number;
+  subtotal: number;
+  gst: number;
+  gstRate: number;
+  shippingMethod: ShippingMethod;
+  shipping: number;
+  total: number;
+};
+
+/** Itemised INR totals for the current cart. */
+export type CartTotals = {
+  cost: number;
+  markup: number;
+  subtotal: number;
+  gst: number;
+  gstRate: number;
+  shipping: number;
   total: number;
 };
 
@@ -57,6 +81,9 @@ type Store = {
   clearCart: () => void;
   placeOrder: (customer: Customer) => Order;
   subtotal: number;
+  totals: CartTotals;
+  shippingMethod: ShippingMethod;
+  setShippingMethod: (m: ShippingMethod) => void;
   currency: Currency;
   setCurrency: (c: Currency) => void;
 };
@@ -91,7 +118,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [currency, setCurrency] = useState<Currency>("USD");
+  const [currency, setCurrency] = useState<Currency>("INR");
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>("domestic");
 
   useEffect(() => {
     try {
@@ -104,6 +132,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           orders: Order[];
           order: Order | null;
           currency: Currency;
+          shippingMethod: ShippingMethod;
         }>;
         if (parsed.designs) {
           setDesigns({
@@ -111,10 +140,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             male: mergeDesign(defaultDesign("male"), parsed.designs.male ?? {}),
           });
         }
-        if (parsed.cart) setCart(parsed.cart);
+        // Re-price stored items so legacy (USD-era) prices become real INR amounts.
+        if (parsed.cart)
+          setCart(parsed.cart.map((i) => ({ ...i, price: designPrice(i.design) })));
         if (parsed.orders?.length) setOrders(parsed.orders);
         else if (parsed.order) setOrders([parsed.order]);
         if (parsed.currency === "INR" || parsed.currency === "USD") setCurrency(parsed.currency);
+        if (parsed.shippingMethod === "domestic" || parsed.shippingMethod === "international")
+          setShippingMethod(parsed.shippingMethod);
       }
     } catch {
       /* ignore corrupt storage */
@@ -125,11 +158,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(KEY, JSON.stringify({ designs, cart, orders, currency }));
+      window.localStorage.setItem(
+        KEY,
+        JSON.stringify({ designs, cart, orders, currency, shippingMethod }),
+      );
     } catch {
       /* storage full or unavailable */
     }
-  }, [hydrated, designs, cart, orders, currency]);
+  }, [hydrated, designs, cart, orders, currency, shippingMethod]);
+
 
   const updateDesign = useCallback((gender: Gender, patch: DeepPartial<DesignState>) => {
     setDesigns((prev) => ({ ...prev, [gender]: mergeDesign(prev[gender], patch) }));
@@ -171,10 +208,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => setCart([]), []);
 
-  const subtotal = useMemo(
-    () => cart.reduce((sum, i) => sum + i.price * i.qty, 0),
-    [cart],
-  );
+  const totals = useMemo<CartTotals>(() => {
+    let cost = 0;
+    let subtotal = 0;
+    for (const item of cart) {
+      cost += priceBreakdown(item.design).cost * item.qty;
+      subtotal += item.price * item.qty;
+    }
+    const gst = cart.length ? calculateGST(subtotal) : 0;
+    const shipping = cart.length ? shippingFee(shippingMethod) : 0;
+    return {
+      cost,
+      markup: subtotal - cost,
+      subtotal,
+      gst,
+      gstRate: gstRateFor(subtotal),
+      shipping,
+      total: subtotal + gst + shipping,
+    };
+  }, [cart, shippingMethod]);
+
+  const subtotal = totals.subtotal;
 
   const placeOrder = useCallback(
     (customer: Customer) => {
@@ -183,13 +237,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         placedAt: new Date().toISOString(),
         customer,
         items: cart,
-        total: cart.reduce((sum, i) => sum + i.price * i.qty, 0),
+        cost: totals.cost,
+        markup: totals.markup,
+        subtotal: totals.subtotal,
+        gst: totals.gst,
+        gstRate: totals.gstRate,
+        shippingMethod,
+        shipping: totals.shipping,
+        total: totals.total,
       };
       setOrders((prev) => [next, ...prev]);
       setCart([]);
       return next;
     },
-    [cart],
+    [cart, totals, shippingMethod],
   );
 
   const value = useMemo<Store>(
@@ -208,6 +269,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       clearCart,
       placeOrder,
       subtotal,
+      totals,
+      shippingMethod,
+      setShippingMethod,
       currency,
       setCurrency,
     }),
@@ -225,6 +289,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       clearCart,
       placeOrder,
       subtotal,
+      totals,
+      shippingMethod,
       currency,
     ],
   );

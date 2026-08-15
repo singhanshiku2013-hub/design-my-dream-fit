@@ -3,7 +3,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { PageShell, Quote } from "@/components/site/SiteNav";
 import { GarmentPreview } from "@/components/preview/GarmentPreview";
 import { useStore } from "@/lib/design/store";
-import { QUOTES, designSummary, formatMoney } from "@/lib/design/options";
+import { CUSTOMS_NOTICE, QUOTES, designSummary, formatMoney } from "@/lib/design/options";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -21,7 +21,8 @@ export const Route = createFileRoute("/cart")({
 });
 
 function CartPage() {
-  const { cart, removeFromCart, setQty, subtotal, clearCart, hydrated, currency } = useStore();
+  const { cart, removeFromCart, setQty, totals, shippingMethod, clearCart, hydrated, currency } =
+    useStore();
   const navigate = useNavigate();
 
   if (!hydrated) {
@@ -125,18 +126,50 @@ function CartPage() {
 
           <aside className="space-y-4 self-start rounded-2xl border border-border bg-card p-5 shadow-soft lg:sticky lg:top-24">
             <h2 className="font-display text-xl">Summary</h2>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Atelier making & delivery</span>
-              <span>Included</span>
-            </div>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Base cost (fabric, labour, add-ons)</dt>
+                <dd className="tabular-nums">{formatMoney(totals.cost, currency)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Atelier markup (1.6×)</dt>
+                <dd className="tabular-nums">{formatMoney(totals.markup, currency)}</dd>
+              </div>
+              <div className="flex justify-between border-t border-border pt-2">
+                <dt className="text-muted-foreground">Price</dt>
+                <dd className="tabular-nums">{formatMoney(totals.subtotal, currency)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">
+                  GST ({Math.round(totals.gstRate * 100)}% slab)
+                </dt>
+                <dd className="tabular-nums">{formatMoney(totals.gst, currency)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">
+                  Shipping ({shippingMethod === "domestic" ? "domestic" : "international"})
+                </dt>
+                <dd className="tabular-nums">{formatMoney(totals.shipping, currency)}</dd>
+              </div>
+            </dl>
+            {shippingMethod === "international" ? (
+              <p className="rounded-xl border border-border bg-secondary/60 p-3 text-xs text-muted-foreground">
+                {CUSTOMS_NOTICE}
+              </p>
+            ) : null}
             <div className="flex justify-between border-t border-border pt-3 font-display text-2xl">
               <span>Total</span>
-              <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
+              <span className="tabular-nums">{formatMoney(totals.total, currency)}</span>
             </div>
+            {currency === "INR" ? (
+              <p className="text-xs text-muted-foreground">
+                {formatMoney(totals.total, "USD")} approx. — charges are made in INR.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Charged as {formatMoney(totals.total)} (INR).
+              </p>
+            )}
             <button
               type="button"
               onClick={() => void navigate({ to: "/checkout" })}

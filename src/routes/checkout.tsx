@@ -4,7 +4,14 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { PageShell } from "@/components/site/SiteNav";
 import { useStore, type Customer } from "@/lib/design/store";
-import { SIZES, formatMoney, type Size } from "@/lib/design/options";
+import {
+  CUSTOMS_NOTICE,
+  SHIPPING_LABEL,
+  SIZES,
+  formatMoney,
+  type ShippingMethod,
+  type Size,
+} from "@/lib/design/options";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/checkout")({
@@ -183,10 +190,74 @@ function CheckoutPage() {
                 </div>
               ))}
             </div>
+            <div className="space-y-2 border-t border-border pt-3">
+              <span className="eyebrow">Shipping method</span>
+              <div className="flex flex-col gap-2">
+                {(["domestic", "international"] as ShippingMethod[]).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setShippingMethod(m)}
+                    aria-pressed={shippingMethod === m}
+                    className={cn(
+                      "rounded-xl border px-3.5 py-2 text-left text-sm transition-colors",
+                      shippingMethod === m
+                        ? "border-primary bg-secondary"
+                        : "border-border bg-background text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {SHIPPING_LABEL[m]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {shippingMethod === "international" ? (
+              <p
+                role="note"
+                className="rounded-xl border border-primary/40 bg-secondary/60 p-3 text-xs text-muted-foreground"
+              >
+                {CUSTOMS_NOTICE}
+              </p>
+            ) : null}
+
+            <dl className="space-y-2 border-t border-border pt-3 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Base cost</dt>
+                <dd className="tabular-nums">{formatMoney(totals.cost, currency)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Markup (1.6×)</dt>
+                <dd className="tabular-nums">{formatMoney(totals.markup, currency)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Price</dt>
+                <dd className="tabular-nums">{formatMoney(totals.subtotal, currency)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">
+                  GST ({Math.round(totals.gstRate * 100)}% slab)
+                </dt>
+                <dd className="tabular-nums">{formatMoney(totals.gst, currency)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Shipping ({shippingMethod})</dt>
+                <dd className="tabular-nums">{formatMoney(totals.shipping, currency)}</dd>
+              </div>
+            </dl>
             <div className="flex justify-between border-t border-border pt-3 font-display text-2xl">
               <span>Total</span>
-              <span className="tabular-nums">{formatMoney(subtotal, currency)}</span>
+              <span className="tabular-nums">{formatMoney(totals.total, currency)}</span>
             </div>
+            {currency === "INR" ? (
+              <p className="text-xs text-muted-foreground">
+                {formatMoney(totals.total, "USD")} approx. — all charges are computed in INR.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Charged as {formatMoney(totals.total)} (INR).
+              </p>
+            )}
             <button
               type="submit"
               className="w-full rounded-full bg-primary px-5 py-3 font-medium text-primary-foreground transition-transform hover:scale-[1.02]"

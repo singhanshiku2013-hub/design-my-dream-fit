@@ -103,11 +103,13 @@ export function Customizer({ gender }: { gender: Gender }) {
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-3">
             <div>
-              <p className="eyebrow">Atelier price</p>
+              <p className="eyebrow">Atelier price (before GST)</p>
               <p className="font-display text-2xl">{formatMoney(price, currency)}</p>
               {currency === "INR" ? (
-                <p className="text-[0.7rem] text-muted-foreground">approx. from {formatMoney(price)}</p>
-              ) : null}
+                <p className="text-[0.7rem] text-muted-foreground">{formatMoney(price, "USD")} approx.</p>
+              ) : (
+                <p className="text-[0.7rem] text-muted-foreground">charged as {formatMoney(price)}</p>
+              )}
             </div>
             <div className="flex gap-2">
               <button
@@ -311,7 +313,8 @@ export function Customizer({ gender }: { gender: Gender }) {
                 )}
               >
                 <p className="text-sm font-medium">
-                  {f.id} {f.price ? <span className="text-muted-foreground">+${f.price}</span> : null}
+                  {f.id}{" "}
+                  <span className="text-muted-foreground">₹{f.ratePerMetre}/m</span>
                 </p>
                 <p className="text-xs text-muted-foreground">{f.note}</p>
               </button>
