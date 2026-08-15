@@ -198,10 +198,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => setCart([]), []);
 
-  const subtotal = useMemo(
-    () => cart.reduce((sum, i) => sum + i.price * i.qty, 0),
-    [cart],
-  );
+  const totals = useMemo<CartTotals>(() => {
+    let cost = 0;
+    let subtotal = 0;
+    for (const item of cart) {
+      cost += priceBreakdown(item.design).cost * item.qty;
+      subtotal += item.price * item.qty;
+    }
+    const gst = cart.length ? calculateGST(subtotal) : 0;
+    const shipping = cart.length ? shippingFee(shippingMethod) : 0;
+    return {
+      cost,
+      markup: subtotal - cost,
+      subtotal,
+      gst,
+      gstRate: gstRateFor(subtotal),
+      shipping,
+      total: subtotal + gst + shipping,
+    };
+  }, [cart, shippingMethod]);
+
+  const subtotal = totals.subtotal;
 
   const placeOrder = useCallback(
     (customer: Customer) => {
@@ -210,13 +227,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         placedAt: new Date().toISOString(),
         customer,
         items: cart,
-        total: cart.reduce((sum, i) => sum + i.price * i.qty, 0),
+        cost: totals.cost,
+        markup: totals.markup,
+        subtotal: totals.subtotal,
+        gst: totals.gst,
+        gstRate: totals.gstRate,
+        shippingMethod,
+        shipping: totals.shipping,
+        total: totals.total,
       };
       setOrders((prev) => [next, ...prev]);
       setCart([]);
       return next;
     },
-    [cart],
+    [cart, totals, shippingMethod],
   );
 
   const value = useMemo<Store>(
@@ -235,6 +259,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       clearCart,
       placeOrder,
       subtotal,
+      totals,
+      shippingMethod,
+      setShippingMethod,
       currency,
       setCurrency,
     }),
@@ -252,6 +279,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       clearCart,
       placeOrder,
       subtotal,
+      totals,
+      shippingMethod,
       currency,
     ],
   );
