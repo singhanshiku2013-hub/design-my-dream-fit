@@ -21,7 +21,8 @@ export const Route = createFileRoute("/cart")({
 });
 
 function CartPage() {
-  const { cart, removeFromCart, setQty, subtotal, clearCart, hydrated, currency } = useStore();
+  const { cart, removeFromCart, setQty, totals, shippingMethod, clearCart, hydrated, currency } =
+    useStore();
   const navigate = useNavigate();
 
   if (!hydrated) {
