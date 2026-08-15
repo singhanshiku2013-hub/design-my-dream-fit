@@ -4,7 +4,14 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { PageShell } from "@/components/site/SiteNav";
 import { useStore, type Customer } from "@/lib/design/store";
-import { SIZES, formatMoney, type Size } from "@/lib/design/options";
+import {
+  CUSTOMS_NOTICE,
+  SHIPPING_LABEL,
+  SIZES,
+  formatMoney,
+  type ShippingMethod,
+  type Size,
+} from "@/lib/design/options";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/checkout")({
