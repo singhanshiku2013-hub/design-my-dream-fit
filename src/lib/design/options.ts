@@ -742,33 +742,122 @@ export const QUOTES = [
 ];
 
 export function designPrice(d: DesignState): number {
-  // Affordable atelier pricing: every finished design lands between $20 and $50.
-  const base = d.category === "suit" ? 34 : d.category === "dress" ? 26 : 22;
-  const fabric = FABRICS.find((f) => f.id === d.fabric)?.price ?? 0;
-  const pattern =
-    (d.pattern.name === "None" ? 0 : 3) +
-    (d.category !== "dress" && d.pantsPattern.name !== "None" ? 2 : 0);
-  const jacket = d.category === "suit" && d.jacket.enabled ? 2 : 0;
-  const size = ["XXL", "XXXL"].includes(d.size) ? 1 : 0;
-  return Math.min(50, Math.max(20, base + fabric + pattern + jacket + size));
+// ---------------------------------------------------------------------------
+// Pricing. Every figure below is a real INR amount — INR is the currency the
+// app actually computes and charges in. USD is display-only (see formatMoney).
+// ---------------------------------------------------------------------------
+
+/** Metres of fabric consumed by each category at size M. */
+export const METRES_REQUIRED: Record<Category, number> = {
+  dress: 2.5,
+  separates: 2.8,
+  suit: 4,
+};
+
+/** Flat atelier labour charge per category, in INR. */
+export const LABOR_COST: Record<Category, number> = {
+  dress: 900,
+  separates: 1100,
+  suit: 1800,
+};
+
+/** Add-on construction charges, in INR. */
+export const ADDON_COST = {
+  pattern: 150,
+  bottomsPattern: 100,
+  jacket: 300,
+  adaptive: 250,
+} as const;
+
+/** Markup applied to cost to reach the pre-tax retail price. */
+export const MARKUP = 1.6;
+
+const roundTo50 = (n: number) => Math.round(n / 50) * 50;
+
+export type PriceBreakdown = {
+  fabricCost: number;
+  laborCost: number;
+  addOns: number;
+  /** fabric + labour + add-ons */
+  cost: number;
+  /** cost × MARKUP − cost, i.e. the markup component of the price */
+  markup: number;
+  /** rounded retail price before GST and shipping */
+  preTaxPrice: number;
+};
+
+export function priceBreakdown(d: DesignState): PriceBreakdown {
+  const rate = FABRICS.find((f) => f.id === d.fabric)?.ratePerMetre ?? 0;
+  const fabricCost = METRES_REQUIRED[d.category] * SIZE_SCALE[d.size] * rate;
+  const laborCost = LABOR_COST[d.category];
+  const addOns =
+    (d.pattern.name === "None" ? 0 : ADDON_COST.pattern) +
+    (d.category !== "dress" && d.pantsPattern.name !== "None" ? ADDON_COST.bottomsPattern : 0) +
+    (d.category === "suit" && d.jacket.enabled ? ADDON_COST.jacket : 0) +
+    (d.disability !== "none" ? ADDON_COST.adaptive : 0);
+  const cost = Math.round(fabricCost + laborCost + addOns);
+  const preTaxPrice = roundTo50(cost * MARKUP);
+  return {
+    fabricCost: Math.round(fabricCost),
+    laborCost,
+    addOns,
+    cost,
+    markup: preTaxPrice - cost,
+    preTaxPrice,
+  };
+}
+
+/** Pre-tax, pre-shipping price of a design, in INR. */
+export function designPrice(d: DesignState): number {
+  return priceBreakdown(d).preTaxPrice;
+}
+
+/** GST slab applied to a pre-tax amount: 5% up to ₹2,500, 18% above. */
+export const gstRateFor = (preTaxPrice: number): number => (preTaxPrice <= 2500 ? 0.05 : 0.18);
+
+/** GST payable on a pre-tax amount, in INR. Always a separate line item. */
+export function calculateGST(preTaxPrice: number): number {
+  return Math.round(preTaxPrice * gstRateFor(preTaxPrice));
+}
+
+export type ShippingMethod = "domestic" | "international";
+
+export const SHIPPING_FEES: Record<ShippingMethod, number> = {
+  domestic: 150,
+  international: 1200,
+};
+
+export const SHIPPING_LABEL: Record<ShippingMethod, string> = {
+  domestic: "Domestic (India) — flat ₹150",
+  international: "International — flat ₹1,200 courier",
+};
+
+export const CUSTOMS_NOTICE =
+  "International orders may be subject to customs duties and import taxes charged separately by the carrier or customs authority in the destination country. This is not included in the price shown.";
+
+export function shippingFee(method: ShippingMethod): number {
+  return SHIPPING_FEES[method];
 }
 
 export type Currency = "USD" | "INR";
 
-/** Indicative conversion rate used for the approximate rupee display. */
+/** Indicative conversion rate used only for the approximate USD display. */
 export const USD_TO_INR = 88;
 
 export const CURRENCY_LABEL: Record<Currency, string> = {
-  USD: "USD ($)",
+  USD: "USD ($) approx.",
   INR: "INR (₹)",
 };
 
-/** Formats a USD amount in the chosen currency (rupees are approximate). */
-export function formatMoney(usd: number, currency: Currency = "USD"): string {
-  if (currency === "INR") {
-    return `₹${Math.round(usd * USD_TO_INR).toLocaleString("en-IN")}`;
+/** Formats an INR amount; USD is an approximate display conversion only. */
+export function formatMoney(inr: number, currency: Currency = "INR"): string {
+  if (currency === "USD") {
+    return `≈ $${(Math.round((inr / USD_TO_INR) * 100) / 100).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   }
-  return `$${usd.toLocaleString("en-US")}`;
+  return `₹${Math.round(inr).toLocaleString("en-IN")}`;
 }
 
 export function designTitle(d: DesignState): string {
