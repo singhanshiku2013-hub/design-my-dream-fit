@@ -140,7 +140,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             male: mergeDesign(defaultDesign("male"), parsed.designs.male ?? {}),
           });
         }
-        if (parsed.cart) setCart(parsed.cart);
+        // Re-price stored items so legacy (USD-era) prices become real INR amounts.
+        if (parsed.cart)
+          setCart(parsed.cart.map((i) => ({ ...i, price: designPrice(i.design) })));
         if (parsed.orders?.length) setOrders(parsed.orders);
         else if (parsed.order) setOrders([parsed.order]);
         if (parsed.currency === "INR" || parsed.currency === "USD") setCurrency(parsed.currency);
