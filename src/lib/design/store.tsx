@@ -132,6 +132,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           orders: Order[];
           order: Order | null;
           currency: Currency;
+          shippingMethod: ShippingMethod;
         }>;
         if (parsed.designs) {
           setDesigns({
@@ -143,6 +144,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (parsed.orders?.length) setOrders(parsed.orders);
         else if (parsed.order) setOrders([parsed.order]);
         if (parsed.currency === "INR" || parsed.currency === "USD") setCurrency(parsed.currency);
+        if (parsed.shippingMethod === "domestic" || parsed.shippingMethod === "international")
+          setShippingMethod(parsed.shippingMethod);
       }
     } catch {
       /* ignore corrupt storage */
@@ -153,11 +156,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(KEY, JSON.stringify({ designs, cart, orders, currency }));
+      window.localStorage.setItem(
+        KEY,
+        JSON.stringify({ designs, cart, orders, currency, shippingMethod }),
+      );
     } catch {
       /* storage full or unavailable */
     }
-  }, [hydrated, designs, cart, orders, currency]);
+  }, [hydrated, designs, cart, orders, currency, shippingMethod]);
+
 
   const updateDesign = useCallback((gender: Gender, patch: DeepPartial<DesignState>) => {
     setDesigns((prev) => ({ ...prev, [gender]: mergeDesign(prev[gender], patch) }));
