@@ -470,11 +470,12 @@ export const PATTERN_GROUPS: { group: string; patterns: string[] }[] = [
 
 export const ALL_PATTERNS = PATTERN_GROUPS.flatMap((g) => g.patterns);
 
+/** Fabric rates are real INR costs per metre. */
 export const FABRICS = [
-  { id: "Cotton", note: "Breathable, matte, everyday luxury.", sheen: 0.06, price: 0 },
-  { id: "Silk", note: "Fluid drape with a soft liquid glow.", sheen: 0.3, price: 7 },
-  { id: "Chiffon", note: "Airy, translucent, weightless movement.", sheen: 0.14, price: 4 },
-  { id: "Satin", note: "High-shine finish for evening statements.", sheen: 0.42, price: 6 },
+  { id: "Cotton", note: "Breathable, matte, everyday luxury.", sheen: 0.06, ratePerMetre: 150 },
+  { id: "Silk", note: "Fluid drape with a soft liquid glow.", sheen: 0.3, ratePerMetre: 650 },
+  { id: "Chiffon", note: "Airy, translucent, weightless movement.", sheen: 0.14, ratePerMetre: 280 },
+  { id: "Satin", note: "High-shine finish for evening statements.", sheen: 0.42, ratePerMetre: 320 },
 ] as const;
 export type Fabric = (typeof FABRICS)[number]["id"];
 
