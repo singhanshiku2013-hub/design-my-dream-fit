@@ -8,12 +8,17 @@ import {
   type ReactNode,
 } from "react";
 import {
+  calculateGST,
   defaultDesign,
   designPrice,
   designTitle,
+  gstRateFor,
+  priceBreakdown,
+  shippingFee,
   type Currency,
   type DesignState,
   type Gender,
+  type ShippingMethod,
   type Size,
 } from "./options";
 
@@ -38,6 +43,25 @@ export type Order = {
   placedAt: string;
   customer: Customer;
   items: CartItem[];
+  /** All amounts in INR. */
+  cost: number;
+  markup: number;
+  subtotal: number;
+  gst: number;
+  gstRate: number;
+  shippingMethod: ShippingMethod;
+  shipping: number;
+  total: number;
+};
+
+/** Itemised INR totals for the current cart. */
+export type CartTotals = {
+  cost: number;
+  markup: number;
+  subtotal: number;
+  gst: number;
+  gstRate: number;
+  shipping: number;
   total: number;
 };
 
@@ -57,6 +81,9 @@ type Store = {
   clearCart: () => void;
   placeOrder: (customer: Customer) => Order;
   subtotal: number;
+  totals: CartTotals;
+  shippingMethod: ShippingMethod;
+  setShippingMethod: (m: ShippingMethod) => void;
   currency: Currency;
   setCurrency: (c: Currency) => void;
 };
