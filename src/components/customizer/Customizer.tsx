@@ -311,7 +311,8 @@ export function Customizer({ gender }: { gender: Gender }) {
                 )}
               >
                 <p className="text-sm font-medium">
-                  {f.id} {f.price ? <span className="text-muted-foreground">+${f.price}</span> : null}
+                  {f.id}{" "}
+                  <span className="text-muted-foreground">₹{f.ratePerMetre}/m</span>
                 </p>
                 <p className="text-xs text-muted-foreground">{f.note}</p>
               </button>
