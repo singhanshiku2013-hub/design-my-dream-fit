@@ -100,7 +100,29 @@ function OrderConfirmation() {
             <p className="text-sm">Hand finishing: 5–7 days</p>
             <p className="text-sm font-medium">Estimated delivery {fmt(ready)}</p>
           </div>
-          <div className="flex justify-between border-t border-border pt-4 font-display text-2xl">
+          <dl className="space-y-2 border-t border-border pt-4 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Base cost</dt>
+              <dd className="tabular-nums">{formatMoney(order.cost, currency)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Markup (1.6×)</dt>
+              <dd className="tabular-nums">{formatMoney(order.markup, currency)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Price</dt>
+              <dd className="tabular-nums">{formatMoney(order.subtotal, currency)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">GST ({Math.round(order.gstRate * 100)}% slab)</dt>
+              <dd className="tabular-nums">{formatMoney(order.gst, currency)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Shipping ({order.shippingMethod})</dt>
+              <dd className="tabular-nums">{formatMoney(order.shipping, currency)}</dd>
+            </div>
+          </dl>
+          <div className="flex justify-between border-t border-border pt-3 font-display text-2xl">
             <span>Total</span>
             <span className="tabular-nums">{formatMoney(order.total, currency)}</span>
           </div>
