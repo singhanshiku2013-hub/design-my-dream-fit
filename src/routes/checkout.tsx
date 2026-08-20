@@ -43,7 +43,7 @@ const schema = z.object({
 const PAYMENTS: Customer["payment"][] = ["Cash on Delivery", "Card", "Online Payment"];
 
 function CheckoutPage() {
-  const { cart, subtotal, placeOrder, updateCartItemSize, hydrated, currency } = useStore();
+  const { cart, totals, shippingMethod, setShippingMethod, placeOrder, updateCartItemSize, hydrated, currency } = useStore();
   const navigate = useNavigate();
   const [form, setForm] = useState<Customer>({
     name: "",
