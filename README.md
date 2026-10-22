@@ -1,4 +1,4 @@
-# Chic Canvas Studio
+# Épuré Studio
 
 DesignMyDress Web App
 

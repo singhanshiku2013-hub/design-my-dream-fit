@@ -8,12 +8,12 @@ export const Route = createFileRoute("/customize/$gender")({
     const label = params.gender === "male" ? "Menswear" : "Womenswear";
     return {
       meta: [
-        { title: `${label} Customizer — Chic Canvas` },
+        { title: `${label} Customizer — Épuré` },
         {
           name: "description",
           content: `Design ${label.toLowerCase()} live: necklines, sleeves, silhouettes, fabrics, patterns and colours with an AI stylist beside you.`,
         },
-        { property: "og:title", content: `${label} Customizer — Chic Canvas` },
+        { property: "og:title", content: `${label} Customizer — Épuré` },
         {
           property: "og:description",
           content: "Layered live preview that updates instantly with every choice you make.",

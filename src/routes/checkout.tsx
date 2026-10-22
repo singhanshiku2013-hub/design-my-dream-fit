@@ -17,13 +17,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
-      { title: "Checkout — Chic Canvas" },
+      { title: "Checkout — Épuré" },
       {
         name: "description",
         content:
           "Enter delivery details, choose a payment method and confirm your made-to-measure order.",
       },
-      { property: "og:title", content: "Checkout — Chic Canvas" },
+      { property: "og:title", content: "Checkout — Épuré" },
       { property: "og:description", content: "Delivery details for your custom garments." },
     ],
   }),
