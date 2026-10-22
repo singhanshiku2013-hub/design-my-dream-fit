@@ -16,6 +16,7 @@ import {
   SLEEVES,
   VENTS,
   BREAST_POCKETS,
+  SKIN_TONES,
   WAISTBANDS,
   WAISTLINES,
   YOKES,
@@ -27,6 +28,7 @@ import { suggestionSchema, type StylistInput, type StylistSuggestion } from "./s
 function catalogue(design: DesignState) {
   return {
     bodyShape: bodyShapesFor(design.gender).map((b) => b.id),
+    skinTone: SKIN_TONES.map((t) => t.id),
     size: [...SIZES],
     fabric: FABRICS.map((f) => f.id),
     pattern: ALL_PATTERNS,

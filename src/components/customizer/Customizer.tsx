@@ -22,6 +22,7 @@ import {
   SHIRT_COLLARS,
   SHIRT_SLEEVES,
   SIZES,
+  SKIN_TONES,
   SKIRTS,
   SLEEVES,
   VENTS,
@@ -181,6 +182,36 @@ export function Customizer({ gender }: { gender: Gender }) {
               >
                 <p className="text-sm font-medium">{s.label}</p>
                 <p className="text-xs text-muted-foreground">{s.description}</p>
+              </button>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="Skin tone">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {SKIN_TONES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => set({ skinTone: t.id })}
+                aria-pressed={design.skinTone === t.id}
+                className={cn(
+                  "flex items-start gap-3 rounded-xl border p-3 text-left transition-all",
+                  design.skinTone === t.id
+                    ? "border-primary bg-secondary shadow-soft"
+                    : "border-border bg-background hover:border-primary/50",
+                )}
+              >
+                <span
+                  className="mt-0.5 h-8 w-8 shrink-0 rounded-full border border-border"
+                  style={{
+                    background: `linear-gradient(135deg, ${t.base} 55%, ${t.shade} 55%)`,
+                  }}
+                />
+                <span>
+                  <p className="text-sm font-medium">{t.label}</p>
+                  <p className="text-xs text-muted-foreground">{t.description}</p>
+                </span>
               </button>
             ))}
           </div>
