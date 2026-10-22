@@ -15,6 +15,7 @@ export const suggestionSchema = z.object({
       fabric: z.string().optional(),
       size: z.string().optional(),
       bodyShape: z.string().optional(),
+      skinTone: z.string().optional(),
       disability: z.string().optional(),
       dress: z
         .object({

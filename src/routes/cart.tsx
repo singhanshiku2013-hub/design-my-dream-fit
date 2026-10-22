@@ -8,12 +8,12 @@ import { CUSTOMS_NOTICE, QUOTES, designSummary, formatMoney } from "@/lib/design
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { title: "Your Cart — Chic Canvas" },
+      { title: "Your Cart — Épuré" },
       {
         name: "description",
         content: "Review your custom garments, adjust quantities and continue to checkout.",
       },
-      { property: "og:title", content: "Your Cart — Chic Canvas" },
+      { property: "og:title", content: "Your Cart — Épuré" },
       { property: "og:description", content: "Your made-to-measure pieces, ready for checkout." },
     ],
   }),

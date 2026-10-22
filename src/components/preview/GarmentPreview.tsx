@@ -6,6 +6,7 @@ import {
   bodyShapesFor,
   disabilityFor,
   pantLengthFor,
+  skinToneFor,
   type DesignState,
 } from "@/lib/design/options";
 
@@ -154,8 +155,9 @@ export function GarmentPreview({ design }: { design: DesignState }) {
   const waistY = HIP_Y - 74 + (WAIST_OFFSET[design.dress.waistline] ?? 0);
 
   // ---- body silhouette -------------------------------------------------
-  const skin = "#E8C9AE";
-  const skinShade = "#D9B295";
+  const tone = skinToneFor(design.skinTone);
+  const skin = tone.base;
+  const skinShade = tone.shade;
   const torso = `
     M ${CX - SH} ${SHOULDER_Y}
     C ${CX - SH - 6} ${BUST_Y} ${CX - WH - 6} ${HIP_Y - 110} ${CX - WH} ${HIP_Y - 66}
