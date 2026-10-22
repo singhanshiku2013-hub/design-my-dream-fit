@@ -488,10 +488,68 @@ export const PASTEL_SWATCHES = [
   "#F1E3E8",
 ];
 
+export type SkinTone = {
+  id: string;
+  label: string;
+  description: string;
+  /** main fill for the model's skin */
+  base: string;
+  /** shaded side, neck shadow and stumps */
+  shade: string;
+};
+
+export const SKIN_TONES: SkinTone[] = [
+  {
+    id: "porcelain",
+    label: "Very Fair / Porcelain",
+    description:
+      "Exceptionally pale, translucent skin that burns almost instantly and rarely tans.",
+    base: "#F7E6DC",
+    shade: "#E4CBB8",
+  },
+  {
+    id: "fair",
+    label: "Fair / Light",
+    description:
+      "Light skin that reddens or sunburns easily and picks up only a mild tan.",
+    base: "#EFD2B6",
+    shade: "#DAB793",
+  },
+  {
+    id: "wheatish",
+    label: "Medium / Wheatish",
+    description:
+      "Beige to light brown; tans relatively easily with less severe sunburn.",
+    base: "#DDB28D",
+    shade: "#C5976F",
+  },
+  {
+    id: "olive",
+    label: "Tan / Olive",
+    description:
+      "Richer moderate brown with balanced melanin; rarely burns, tans quickly.",
+    base: "#C08A5F",
+    shade: "#A26F47",
+  },
+  {
+    id: "deep",
+    label: "Deep / Dark",
+    description:
+      "Melanin-rich espresso to dark brown; strong natural UV protection, rarely burns.",
+    base: "#7B4B2E",
+    shade: "#5A3520",
+  },
+];
+
+export const skinToneFor = (id: string): SkinTone =>
+  SKIN_TONES.find((t) => t.id === id) ?? SKIN_TONES[1]!;
+
 export type DesignState = {
   gender: Gender;
   view: ViewSide;
   bodyShape: string;
+  /** Skin tone id, see SKIN_TONES. */
+  skinTone: string;
   size: Size;
   category: Category;
   fabric: Fabric;
@@ -547,6 +605,7 @@ export const defaultDesign = (gender: Gender): DesignState => ({
   gender,
   view: "front",
   bodyShape: gender === "female" ? "hourglass" : "trapezoid",
+  skinTone: "fair",
   size: "M",
   category: gender === "female" ? "dress" : "separates",
   fabric: "Cotton",
