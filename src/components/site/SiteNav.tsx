@@ -49,7 +49,7 @@ export function SiteNav() {
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
         <Link to="/" className="font-display text-xl font-semibold tracking-tight">
-          Chic <span className="text-luxe-gradient">Canvas</span>
+          {"\u00a0"}<span className="text-luxe-gradient">Épuré</span>
         </Link>
 
         <nav className="order-3 -mx-1 flex w-full items-center gap-1 overflow-x-auto pb-1 sm:order-2 sm:mx-0 sm:w-auto sm:overflow-visible sm:pb-0">
@@ -100,7 +100,7 @@ export function PageShell({
       <SiteNav />
       <main className={cn("mx-auto max-w-7xl px-4 py-10 sm:px-6", className)}>{children}</main>
       <footer className="border-t border-border/70 py-8 text-center text-xs text-muted-foreground">
-        Chic Canvas: made-to-measure luxury. We make dresses suit people, not the other way around.
+        Épuré: made-to-measure luxury. We make dresses suit people, not the other way around.
       </footer>
     </div>
   );
